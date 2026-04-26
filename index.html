@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Australian FIRE Calculator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --color-bg: #0f0f0f;
+    --color-bg-secondary: #1a1a1a;
+    --color-bg-tertiary: #222;
+    --color-border: #2a2a2a;
+    --color-border-secondary: #333;
+    --color-text: #e8e8e8;
+    --color-text-secondary: #999;
+    --color-text-tertiary: #666;
+    --color-success: #3d9e40;
+    --color-success-bg: rgba(61,158,64,0.1);
+    --color-success-border: rgba(61,158,64,0.3);
+    --color-danger: #e05555;
+    --color-danger-bg: rgba(224,85,85,0.1);
+    --color-danger-border: rgba(224,85,85,0.3);
+    --color-warning: #c98a1a;
+    --color-warning-bg: rgba(201,138,26,0.1);
+    --color-warning-border: rgba(201,138,26,0.3);
+    --color-info: #378ADD;
+    --color-info-border: rgba(55,138,221,0.3);
+    --color-accent: #378ADD;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.5;
+    padding: 1.5rem;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; }
+
+  h1 { font-size: 24px; font-weight: 500; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
+
+  .card {
+    background: var(--color-bg-secondary);
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem 2.5rem;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--color-text-tertiary);
+    margin-bottom: 12px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 10px; }
+  .field > div { display: flex; flex-direction: column; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: 2px;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    margin-bottom: 3px;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    background: var(--color-bg-tertiary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--radius-sm);
+    color: var(--color-text);
+    padding: 7px 10px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="number"]:focus { border-color: var(--color-accent); }
+
+  button {
+    background: var(--color-accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  button:hover { opacity: 0.85; }
+
+  .toolbar {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 0.5px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .toolbar span { font-size: 11px; color: var(--color-text-tertiary); }
+
+  /* Result banners */
+  .banner {
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .banner-success { background: var(--color-success-bg); border: 0.5px solid var(--color-success-border); }
+  .banner-danger  { background: var(--color-danger-bg);  border: 0.5px solid var(--color-danger-border); }
+  .banner-warning { background: var(--color-warning-bg); border: 0.5px solid var(--color-warning-border); }
+
+  .banner-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 6px;
+  }
+  .banner-label-success { color: var(--color-success); }
+  .banner-label-warning { color: var(--color-warning); }
+
+  .fire-age { font-size: 28px; font-weight: 500; }
+  .fire-sub  { font-size: 14px; color: var(--color-text-secondary); margin-top: 5px; }
+  .fire-detail { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+
+  .banner-row { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .banner-stats { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+  .stat-box { text-align: center; }
+  .stat-val { font-size: 22px; font-weight: 500; }
+  .stat-lbl { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+  .stat-sub { font-size: 11px; color: var(--color-text-tertiary); }
+
+  /* Summary cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .sum-card {
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+  }
+  .sum-card .sl { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .sum-card .sv { font-size: 17px; font-weight: 500; font-family: var(--font-mono); }
+  .sum-card .ss { font-size: 11px; color: var(--color-text-tertiary); margin-top: 3px; }
+
+  /* Readiness panels */
+  .readiness-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .readiness-panel {
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+  }
+  .readiness-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin-bottom: 8px;
+  }
+  .readiness-desc { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 10px; }
+  .readiness-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .readiness-stat .rs-lbl { font-size: 11px; color: var(--color-text-tertiary); }
+  .readiness-stat .rs-val { font-size: 20px; font-weight: 500; }
+  .readiness-footer {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-top: 0.5px solid var(--color-border);
+    padding-top: 8px;
+    margin-bottom: 8px;
+  }
+  .readiness-note { font-size: 12px; color: var(--color-text-secondary); }
+
+  /* Chart */
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .chart-title { font-size: 13px; font-weight: 500; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--color-text-secondary); }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-line { width: 14px; display: inline-block; }
+  .chart-wrap { position: relative; width: 100%; height: 240px; }
+
+  /* Table */
+  .table-header {
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 0.5px solid var(--color-border);
+  }
+  .table-header h3 { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .table-header p { font-size: 12px; color: var(--color-text-secondary); }
+  .table-scroll { overflow-x: auto; max-height: 640px; overflow-y: auto; }
+
+  table { border-collapse: collapse; white-space: nowrap; font-size: 12px; width: 100%; }
+
+  thead tr:first-child th {
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--color-text-tertiary);
+    background: var(--color-bg-tertiary);
+    border-bottom: 0.5px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 3;
+  }
+
+  thead tr:second-child th,
+  thead tr:nth-child(2) th {
+    padding: 6px 10px;
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    border-bottom: 0.5px solid var(--color-border-secondary);
+    position: sticky;
+    top: 28px;
+    z-index: 2;
+    background: var(--color-bg-secondary);
+    white-space: nowrap;
+  }
+
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+  tbody td { padding: 5px 10px; text-align: right; }
+
+  .mono { font-family: var(--font-mono); }
+  .dim  { color: var(--color-text-tertiary); }
+  .pos  { color: var(--color-success); }
+  .neg  { color: var(--color-danger); }
+  .info { color: var(--color-info); }
+
+  .phase-working    { font-size: 11px; color: var(--color-text-secondary); }
+  .phase-bridge     { font-size: 11px; font-weight: 500; color: var(--color-warning); }
+  .phase-super      { font-size: 11px; font-weight: 500; color: var(--color-success); }
+  .phase-tag        { font-size: 10px; color: var(--color-text-tertiary); margin-left: 4px; }
+
+  .row-fire { background: rgba(61,158,64,0.07) !important; }
+  .border-fire   { border-left: 3px solid #3B6D11; }
+  .border-bridge { border-left: 3px solid #BA7517; }
+  .border-super  { border-left: 3px solid #3B6D11; }
+  .border-none   { border-left: 3px solid transparent; }
+  .border-pres   { border-top: 2px solid #185FA5; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Australian FIRE Calculator</h1>
+  <p class="subtitle">Sequential drawdown: Cash → Investments → Super · Bridge &amp; total failure diagnostics · Tax-accurate</p>
+
+  <!-- INPUTS -->
+  <div class="card">
+    <div class="inputs-grid">
+      <div>
+        <p class="section-title">Personal</p>
+        <div class="field">
+          <div><label>Current age</label><input type="number" id="i_age" value="35" min="18" max="80"></div>
+          <div><label>Projected age of death</label><input type="number" id="i_death" value="90" min="60" max="120"></div>
+          <div><label>Super preservation age</label><input type="number" id="i_pres" value="60" min="55" max="65"></div>
+        </div>
+      </div>
+      <div>
+        <p class="section-title">Current Assets</p>
+        <div class="field">
+          <div><label>Cash &amp; savings ($)</label><div class="hint">Earns cash return · spent first in retirement</div><input type="number" id="i_cash" value="50000" min="0" step="5000"></div>
+          <div><label>Investment portfolio ($)</label><div class="hint">Spent after cash is exhausted</div><input type="number" id="i_invest" value="150000" min="0" step="5000"></div>
+          <div><label>Superannuation balance ($)</label><div class="hint">Locked until preservation age · drawn last</div><input type="number" id="i_super" value="100000" min="0" step="5000"></div>
+        </div>
+      </div>
+      <div>
+        <p class="section-title">Income &amp; Expenses</p>
+        <div class="field">
+          <div><label>Gross salary excl. super ($)</label><input type="number" id="i_salary" value="120000" min="0" step="5000"></div>
+          <div><label>Annual living expenses ($)</label><div class="hint">Today's dollars — CPI-inflated each year</div><input type="number" id="i_exp" value="70000" min="0" step="1000"></div>
+          <div><label>Salary sacrifice / extra super ($)</label><div class="hint">Reduces taxable income · max $30K total concessional</div><input type="number" id="i_vs" value="0" min="0" step="500"></div>
+        </div>
+      </div>
+      <div>
+        <p class="section-title">Growth Rates</p>
+        <div class="field">
+          <div><label>Cash / HISA return (% p.a.)</label><input type="number" id="i_cir" value="4.5" min="0" max="15" step="0.25"></div>
+          <div><label>Investment return (% p.a.)</label><input type="number" id="i_ir" value="7" min="0" max="20" step="0.5"></div>
+          <div><label>Super return (% p.a.)</label><div class="hint">15% tax accumulation · 0% pension phase</div><input type="number" id="i_sr" value="7" min="0" max="20" step="0.5"></div>
+          <div><label>Inflation (% p.a.)</label><input type="number" id="i_inf" value="3" min="0" max="10" step="0.5"></div>
+        </div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button onclick="recalc()">Recalculate</button>
+      <span>Auto-updates on input change · SG 12% from FY25-26 · FY24-25 tax brackets + LITO · Drawdown: Cash → Invest → Super</span>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="fireResult"></div>
+  <div id="cliffNote"></div>
+  <div id="readinessCard"></div>
+  <div id="sumCards" class="summary-grid"></div>
+
+  <!-- CHART -->
+  <div class="card">
+    <div class="chart-header">
+      <p class="chart-title">Net worth projection</p>
+      <div class="legend" id="cLeg"></div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="fChart"></canvas>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="table-header">
+      <h3>Year-by-year ledger</h3>
+      <p>Nominal dollars · Scroll right for all columns ·
+        <span style="color:var(--color-warning);font-weight:500;">Amber</span> = pre-super bridge ·
+        <span style="color:var(--color-success);font-weight:500;">Green</span> = super phase ·
+        Drawdown order: Cash → Invest → Super
+      </p>
+    </div>
+    <div class="table-scroll" id="tWrap">
+      <table id="fTable"></table>
+    </div>
+  </div>
+
+</div>
+<script>
+const Y0 = 2026;
+let chart = null;
+
+function calcTax(inc) {
+  let t = 0;
+  if (inc <= 18200) t = 0;
+  else if (inc <= 45000)  t = (inc - 18200) * 0.19;
+  else if (inc <= 120000) t = 5092 + (inc - 45000) * 0.325;
+  else if (inc <= 200000) t = 29467 + (inc - 120000) * 0.37;
+  else                    t = 51667 + (inc - 200000) * 0.45;
+  let lito = 0;
+  if (inc <= 37500)      lito = 700;
+  else if (inc <= 45000) lito = 700 - (inc - 37500) * 0.05;
+  else if (inc <= 66667) lito = 325 - (inc - 45000) * 0.015;
+  t = Math.max(0, t - lito);
+  return Math.round(t + (inc > 26000 ? inc * 0.02 : 0));
+}
+
+function getSG(yr) { return yr >= 2025 ? 0.12 : 0.115; }
+
+function canFIRE(age, c, inv, s, exp, p) {
+  let C = c, I = inv, S = s, E = exp;
+  for (let a = age; a <= p.death; a++) {
+    C += C * p.cir;
+    if (a < p.pres) {
+      const ig = I * p.ir;
+      const cD = Math.min(C, E), iD = Math.min(I + ig, E - cD);
+      if (cD + iD < E) return false;
+      C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S += S * p.sr * 0.85;
+    } else {
+      const sg = S * p.sr, ig = I * p.ir;
+      const cD = Math.min(C, E), iD = Math.min(I + ig, E - cD), sD = Math.min(S + sg, E - cD - iD);
+      if (cD + iD + sD < E) return false;
+      C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S = Math.max(0, S + sg - sD);
+    }
+    E *= (1 + p.inf);
+  }
+  return true;
+}
+
+function analyseRetirement(age, c, inv, s, exp, p) {
+  // Bridge check
+  let C = c, I = inv, S = s, E = exp;
+  let bridgeOK = true, brokeAtBridge = null, superAtBrokeAge = null;
+  for (let a = age; a < p.pres; a++) {
+    C += C * p.cir;
+    const ig = I * p.ir;
+    const cD = Math.min(C, E), iD = Math.min(I + ig, E - cD);
+    if (cD + iD < E) { bridgeOK = false; brokeAtBridge = a; superAtBrokeAge = S; break; }
+    C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S += S * p.sr * 0.85;
+    E *= (1 + p.inf);
+  }
+  // Total check (post-pres, only if bridge passed)
+  let totalOK = false, brokeAtTotal = null;
+  if (bridgeOK) {
+    for (let a = p.pres; a <= p.death; a++) {
+      C += C * p.cir;
+      const sg = S * p.sr, ig = I * p.ir;
+      const cD = Math.min(C, E), iD = Math.min(I + ig, E - cD), sD = Math.min(S + sg, E - cD - iD);
+      if (cD + iD + sD < E) { brokeAtTotal = a; break; }
+      C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S = Math.max(0, S + sg - sD);
+      E *= (1 + p.inf);
+    }
+    totalOK = (brokeAtTotal === null);
+  }
+  // Total-if-accessible check (only if bridge failed)
+  let totalOKIfAccessible = false;
+  if (!bridgeOK) {
+    let CA = c, IA = inv, SA = s, EA = exp, ok = true;
+    for (let a = age; a <= p.death; a++) {
+      CA += CA * p.cir;
+      const sg = a >= p.pres ? SA * p.sr : SA * p.sr * 0.85;
+      const ig = IA * p.ir;
+      const cD = Math.min(CA, EA), iD = Math.min(IA + ig, EA - cD), sD = Math.min(SA + sg, EA - cD - iD);
+      if (cD + iD + sD < EA) { ok = false; break; }
+      CA = Math.max(0, CA - cD); IA = Math.max(0, IA + ig - iD); SA = Math.max(0, SA + sg - sD);
+      EA *= (1 + p.inf);
+    }
+    totalOKIfAccessible = ok;
+  }
+  return { bridgeOK, brokeAtBridge, superAtBrokeAge, totalOK, brokeAtTotal, totalOKIfAccessible };
+}
+
+function findBrokeAge(retireAge, c, inv, s, exp, p) {
+  let C = c, I = inv, S = s, E = exp;
+  for (let a = retireAge; a <= p.death + 1; a++) {
+    C += C * p.cir;
+    if (a < p.pres) {
+      const ig = I * p.ir;
+      const cD = Math.min(C, E), iD = Math.min(I + ig, E - cD);
+      if (cD + iD < E) return { brokeAge: a, shortfall: E - cD - iD, beforePres: true, superBalance: S, yearsToSuper: p.pres - a };
+      C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S += S * p.sr * 0.85;
+    } else {
+      const sg = S * p.sr, ig = I * p.ir;
+      const cD = Math.min(C, E), iD = Math.min(I + ig, E - cD), sD = Math.min(S + sg, E - cD - iD);
+      if (cD + iD + sD < E) return { brokeAge: a, shortfall: E - cD - iD - sD, beforePres: false, superBalance: 0 };
+      C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S = Math.max(0, S + sg - sD);
+    }
+    E *= (1 + p.inf);
+  }
+  return null;
+}
+
+function simulate(inp) {
+  const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir };
+  let c = inp.c, inv = inp.inv, s = inp.s, e = inp.e;
+  const rows = [];
+  let fireAge = null, retired = false;
+  for (let age = inp.age; age <= inp.death; age++) {
+    const yr = Y0 + (age - inp.age), post = age >= inp.pres;
+    if (!retired && canFIRE(age, c, inv, s, e, p)) { fireAge = age; retired = true; }
+    const row = { age, yr, cBOY: c, invBOY: inv, sBOY: s, exp: e, retired, post, isFire: retired && age === fireAge };
+    const cashInt = c * p.cir;
+    if (!retired) {
+      const SG = inp.salary * getSG(yr), maxCC = 30000;
+      const volCC = Math.min(inp.vs, Math.max(0, maxCC - SG));
+      const taxInc = inp.salary - volCC, t = calcTax(taxInc), netInc = taxInc - t;
+      const iGrowth = inv * p.ir, sGrowth = s * p.sr * 0.85;
+      const sgNet = SG * 0.85, vcNet = volCC * 0.85;
+      c += cashInt;
+      const cashFlow = netInc - e; let iDelta;
+      if (cashFlow >= 0) { iDelta = cashFlow; inv = inv + iGrowth + cashFlow; }
+      else { const def = -cashFlow, cD = Math.min(c, def); c -= cD; const iD = Math.min(inv + iGrowth, def - cD); inv = Math.max(0, inv + iGrowth - iD); iDelta = -iD; }
+      s += sgNet + vcNet + sGrowth;
+      Object.assign(row, { salary: inp.salary, t, netInc, cashInt, cashFlow, SG, volCC, sContrib: sgNet + vcNet, iGrowth, iDelta, sGrowth });
+    } else if (!post) {
+      const iGrowth = inv * p.ir, sGrowth = s * p.sr * 0.85;
+      c += cashInt;
+      const cD = Math.min(c, e), iD = Math.min(inv + iGrowth, e - cD);
+      c = Math.max(0, c - cD); inv = Math.max(0, inv + iGrowth - iD); s += sGrowth;
+      Object.assign(row, { salary: 0, t: 0, netInc: 0, cashInt, cashFlow: -e, SG: 0, volCC: 0, sContrib: 0, iGrowth, iDelta: -iD, sGrowth });
+    } else {
+      const sGrowth = s * p.sr, iGrowth = inv * p.ir;
+      c += cashInt;
+      const cD = Math.min(c, e), iD = Math.min(inv + iGrowth, e - cD), sD = Math.min(s + sGrowth, e - cD - iD);
+      c = Math.max(0, c - cD); inv = Math.max(0, inv + iGrowth - iD); s = Math.max(0, s + sGrowth - sD);
+      Object.assign(row, { salary: 0, t: 0, netInc: 0, cashInt, cashFlow: -e, SG: 0, volCC: 0, sContrib: -sD, iGrowth, iDelta: -iD, sGrowth });
+    }
+    row.cEOY = c; row.invEOY = inv; row.sEOY = s;
+    row.nonSW = c + inv; row.totalNW = c + inv + s;
+    e *= (1 + p.inf);
+    rows.push(row);
+  }
+  return { rows, fireAge };
+}
+
+function fm(n, z = '—') {
+  if (n === undefined || n === null) return z;
+  if (Math.round(Math.abs(n)) < 1) return '$0';
+  const a = Math.abs(n), sg = n < 0 ? '-' : '';
+  if (a >= 1e6) return sg + '$' + (a / 1e6).toFixed(2) + 'M';
+  if (a >= 10000) return sg + '$' + Math.round(a / 1000) + 'K';
+  if (a >= 1000) return sg + '$' + (a / 1000).toFixed(1) + 'K';
+  return sg + '$' + Math.round(a);
+}
+function nS(n, cls = '') { return `<span class="mono ${cls}">${fm(n, '$0')}</span>`; }
+function cS(n) { return nS(n, n < 0 ? 'neg' : n > 0 ? 'pos' : ''); }
+function dash() { return `<span class="dim">—</span>`; }
+
+function recalc() {
+  const g = id => +document.getElementById(id).value;
+  const inp = {
+    age: g('i_age'), death: g('i_death'), pres: g('i_pres'),
+    c: g('i_cash'), inv: g('i_invest'), s: g('i_super'),
+    salary: g('i_salary'), e: g('i_exp'), vs: g('i_vs'),
+    cir: g('i_cir') / 100, ir: g('i_ir') / 100, sr: g('i_sr') / 100, inf: g('i_inf') / 100
+  };
+  if (inp.death <= inp.age) return;
+  const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir };
+  const { rows, fireAge } = simulate(inp);
+  const lastRow = rows[rows.length - 1];
+  const fr = rows.find(r => r.isFire);
+  const impliedSWR = fr ? (fr.exp / fr.totalNW * 100) : null;
+
+  // ── FIRE RESULT ─────────────────────────────────────────
+  const fe = document.getElementById('fireResult');
+  if (!fireAge) {
+    fe.innerHTML = `<div class="banner banner-danger" style="text-align:center;margin-bottom:1rem;">
+      <p style="font-size:18px;font-weight:500;color:var(--color-danger);margin-bottom:6px;">FIRE not achievable by age ${inp.death}</p>
+      <p style="font-size:13px;color:var(--color-text-secondary);">Increase savings, reduce expenses, or adjust growth rate assumptions</p>
+    </div>`;
+  } else {
+    const yrs = fireAge - inp.age, fireYear = Y0 + yrs;
+    const preYrs = Math.max(0, inp.pres - fireAge);
+    const postYrs = inp.death - Math.max(fireAge, inp.pres);
+    const retYrs = inp.death - fireAge;
+    const fireStr = yrs === 0 ? 'You can retire right now!' : yrs === 1 ? '1 year from now' : `${yrs} years from now`;
+    const bridgeBlock = preYrs > 0 ? `
+      <div class="stat-box">
+        <div class="stat-val">${preYrs}y</div>
+        <div class="stat-lbl">Pre-super bridge</div>
+        <div class="stat-sub">ages ${fireAge}–${inp.pres}</div>
+      </div>` : '';
+    fe.innerHTML = `<div class="banner banner-success" style="margin-bottom:1rem;">
+      <div class="banner-row">
+        <div>
+          <div class="banner-label banner-label-success">FIRE date</div>
+          <div class="fire-age">Age ${fireAge} &nbsp;·&nbsp; ${fireYear}</div>
+          <div class="fire-sub">${fireStr}</div>
+          ${fr ? `<div class="fire-detail">At FIRE: <strong>${fm(fr.nonSW)}</strong> non-super &nbsp;+&nbsp; <strong>${fm(fr.sBOY)}</strong> super locked until age ${inp.pres}</div>` : ''}
+          ${impliedSWR !== null ? `<div class="fire-detail">Implied SWR: <strong>${impliedSWR.toFixed(2)}%</strong> &nbsp;·&nbsp; Estate at death: <strong>${fm(lastRow.totalNW)}</strong></div>` : ''}
+        </div>
+        <div class="banner-stats">
+          ${bridgeBlock}
+          <div class="stat-box">
+            <div class="stat-val">${postYrs}y</div>
+            <div class="stat-lbl">Super phase</div>
+            <div class="stat-sub">age ${Math.max(fireAge, inp.pres)}–${inp.death}</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">${retYrs}y</div>
+            <div class="stat-lbl">Total retirement</div>
+            <div class="stat-sub">ages ${fireAge}–${inp.death}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── ONE YEAR EARLIER ─────────────────────────────────────
+  const cn = document.getElementById('cliffNote');
+  if (fireAge && fireAge > inp.age) {
+    const earlyAge = fireAge - 1;
+    const prevRow = rows.find(r => r.age === earlyAge);
+    if (prevRow) {
+      const broke = findBrokeAge(earlyAge, prevRow.cBOY, prevRow.invBOY, prevRow.sBOY, prevRow.exp, p);
+      if (broke) {
+        const earlyYear = Y0 + (earlyAge - inp.age);
+        const detail = broke.beforePres
+          ? `Cash &amp; investments run out at age <strong>${broke.brokeAge}</strong> — still <strong>${inp.pres - broke.brokeAge}yr${inp.pres - broke.brokeAge === 1 ? '' : 's'} before super</strong> is accessible. Super is at <strong>${fm(broke.superBalance)}</strong> but legally locked. Shortfall: <strong>${fm(broke.shortfall)}/yr</strong>.`
+          : `All assets including super run out at age <strong>${broke.brokeAge}</strong> — ${inp.death - broke.brokeAge} years short of death age. Shortfall: <strong>${fm(broke.shortfall)}/yr</strong>.`;
+        cn.innerHTML = `<div class="banner banner-warning" style="margin-bottom:1rem;">
+          <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+              <div class="banner-label banner-label-warning">One year earlier — age ${earlyAge} · ${earlyYear}</div>
+              <p style="font-size:13px;color:var(--color-text);line-height:1.6;">${detail}</p>
+            </div>
+            <div style="text-align:center;min-width:80px;">
+              <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px;">Broke at</div>
+              <div style="font-size:22px;font-weight:500;color:var(--color-danger);">Age ${broke.brokeAge}</div>
+              ${broke.beforePres ? `<div style="font-size:11px;color:var(--color-warning);margin-top:3px;">${inp.pres - broke.brokeAge}yr gap to super</div>` : ''}
+            </div>
+          </div>
+        </div>`;
+      } else cn.innerHTML = '';
+    }
+  } else cn.innerHTML = '';
+
+  // ── RETIREMENT READINESS ─────────────────────────────────
+  let scenA = null, scenB = null;
+  const workingRows = rows.filter(r => !r.retired && r.age < (fireAge || inp.death));
+  for (const row of workingRows) {
+    const res = analyseRetirement(row.age, row.cBOY, row.invBOY, row.sBOY, row.exp, p);
+    if (!scenA && res.bridgeOK && !res.totalOK) {
+      scenA = { retireAge: row.age, brokeAtTotal: res.brokeAtTotal, nonSuper: row.cBOY + row.invBOY, super_: row.sBOY, exp: row.exp };
+    }
+    if (!scenB && !res.bridgeOK && res.totalOKIfAccessible) {
+      scenB = { retireAge: row.age, brokeAtBridge: res.brokeAtBridge, superAtBroke: res.superAtBrokeAge, nonSuper: row.cBOY + row.invBOY, super_: row.sBOY, exp: row.exp };
+    }
+    if (scenA && scenB) break;
+  }
+
+  const rc = document.getElementById('readinessCard');
+  if (scenA || scenB) {
+    const panelA = scenA ? `
+      <div class="readiness-panel" style="border-left:3px solid var(--color-warning);">
+        <div class="readiness-label" style="color:var(--color-warning);">Bridge ✓ &nbsp;·&nbsp; Total ✗</div>
+        <div class="readiness-desc">First age where non-super bridges to ${inp.pres}, but total assets run out before death age ${inp.death}</div>
+        <div class="readiness-stats">
+          <div class="readiness-stat"><div class="rs-lbl">Retire at</div><div class="rs-val"">Age ${scenA.retireAge}</div></div>
+          <div class="readiness-stat"><div class="rs-lbl">Runs out at</div><div class="rs-val" style="color:var(--color-danger);">Age ${scenA.brokeAtTotal}</div></div>
+          <div class="readiness-stat"><div class="rs-lbl">Survives</div><div class="rs-val">${scenA.brokeAtTotal - scenA.retireAge}yr</div></div>
+        </div>
+        <div class="readiness-footer">
+          <span>Non-super: <strong>${fm(scenA.nonSuper)}</strong></span>
+          <span>Super (locked): <strong>${fm(scenA.super_)}</strong></span>
+          <span>Annual spend: <strong>${fm(scenA.exp)}</strong></span>
+        </div>
+        <div class="readiness-note">Super hasn't accumulated enough yet. Need more time for employer SG to compound before post-60 drawdown can last to age ${inp.death}.</div>
+      </div>` :
+      `<div class="readiness-panel" style="border-left:3px solid var(--color-border);">
+        <div class="readiness-note dim">No age found where bridge succeeds but total fails before your FIRE date.</div>
+      </div>`;
+
+    const panelB = scenB ? `
+      <div class="readiness-panel" style="border-left:3px solid var(--color-info);">
+        <div class="readiness-label" style="color:var(--color-info);">Bridge ✗ &nbsp;·&nbsp; Total ✓ (if super were accessible)</div>
+        <div class="readiness-desc">First age where total wealth is sufficient for life — but non-super alone can't bridge to ${inp.pres}</div>
+        <div class="readiness-stats">
+          <div class="readiness-stat"><div class="rs-lbl">Retire at</div><div class="rs-val">Age ${scenB.retireAge}</div></div>
+          <div class="readiness-stat"><div class="rs-lbl">Bridge fails at</div><div class="rs-val" style="color:var(--color-danger);">Age ${scenB.brokeAtBridge}</div></div>
+          <div class="readiness-stat"><div class="rs-lbl">Gap to super</div><div class="rs-val" style="color:var(--color-warning);">${inp.pres - scenB.brokeAtBridge}yr</div></div>
+        </div>
+        <div class="readiness-footer">
+          <span>Non-super: <strong>${fm(scenB.nonSuper)}</strong></span>
+          <span>Super locked: <strong>${fm(scenB.super_)}</strong></span>
+          <span>Super at broke: <strong>${fm(scenB.superAtBroke)}</strong></span>
+        </div>
+        <div class="readiness-note">Enough total wealth — but it's trapped in super until age ${inp.pres}. Non-super runs out ${inp.pres - scenB.brokeAtBridge} year${inp.pres - scenB.brokeAtBridge === 1 ? '' : 's'} too early. This is the Australian super lock-up problem.</div>
+      </div>` :
+      `<div class="readiness-panel" style="border-left:3px solid var(--color-border);">
+        <div class="readiness-note dim">No age found where total passes (if accessible) but bridge fails before your FIRE date.</div>
+      </div>`;
+
+    rc.innerHTML = `<div class="card" style="margin-bottom:1.25rem;">
+      <p style="font-size:13px;font-weight:500;margin-bottom:4px;">Retirement readiness analysis</p>
+      <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem;">The two failure modes before FIRE — which constraint is binding and when each one resolves</p>
+      <div class="readiness-grid">${panelA}${panelB}</div>
+    </div>`;
+  } else rc.innerHTML = '';
+
+  // ── SUMMARY CARDS ────────────────────────────────────────
+  const sc = document.getElementById('sumCards');
+  const peakNW = Math.max(...rows.map(r => r.totalNW));
+  const mk = (l, v, s) => `<div class="sum-card"><div class="sl">${l}</div><div class="sv">${v}</div>${s ? `<div class="ss">${s}</div>` : ''}</div>`;
+  sc.innerHTML = [
+    mk('Non-super NW today', fm(inp.c + inp.inv), 'cash + investments'),
+    mk('Super today', fm(inp.s), 'accumulation'),
+    fr ? mk('Non-super at FIRE', fm(fr.nonSW), `age ${fireAge}`) : mk('Non-super at FIRE', '—', ''),
+    fr ? mk('Super at FIRE', fm(fr.sBOY), `locked until age ${inp.pres}`) : mk('Super at FIRE', '—', ''),
+    mk('Peak net worth', fm(peakNW), 'all years'),
+    mk('Estate at death', fm(lastRow.totalNW), `age ${inp.death}`),
+  ].join('');
+
+  // ── CHART ────────────────────────────────────────────────
+  if (chart) { chart.destroy(); chart = null; }
+  const vlinePlugin = {
+    id: 'vl', beforeDraw(ch) {
+      if (!fireAge) return;
+      const { ctx, chartArea: ca, scales } = ch; if (!ca) return;
+      const dv = (age, color, label) => {
+        const idx = rows.findIndex(r => r.age === age); if (idx < 0) return;
+        const x = scales.x.getPixelForValue(idx);
+        ctx.save(); ctx.beginPath(); ctx.setLineDash([5, 4]); ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+        ctx.moveTo(x, ca.top); ctx.lineTo(x, ca.bottom); ctx.stroke(); ctx.setLineDash([]);
+        ctx.font = '11px sans-serif'; ctx.fillStyle = color; ctx.fillText(label, x + 3, ca.top + 13); ctx.restore();
+      };
+      dv(fireAge, '#3B6D11', 'FIRE ' + fireAge);
+      if (fireAge < inp.pres) dv(inp.pres, '#185FA5', 'Super ' + inp.pres);
+    }
+  };
+  Chart.defaults.color = '#666';
+  Chart.defaults.borderColor = '#2a2a2a';
+  chart = new Chart(document.getElementById('fChart'), {
+    type: 'line',
+    data: {
+      labels: rows.map(r => r.age),
+      datasets: [
+        { label: 'Total NW', data: rows.map(r => Math.round(r.totalNW)), borderColor: '#378ADD', backgroundColor: 'rgba(55,138,221,0.07)', fill: true, tension: .35, pointRadius: 0, borderWidth: 2 },
+        { label: 'Non-super NW', data: rows.map(r => Math.round(r.nonSW)), borderColor: '#1D9E75', backgroundColor: 'transparent', tension: .35, pointRadius: 0, borderWidth: 1.5, borderDash: [5, 3] },
+        { label: 'Super', data: rows.map(r => Math.round(r.sEOY)), borderColor: '#BA7517', backgroundColor: 'transparent', tension: .35, pointRadius: 0, borderWidth: 1.5, borderDash: [2, 5] },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { title: i => `Age ${i[0].label} (${Y0 + (+i[0].label - inp.age)})`, label: i => `${i.dataset.label}: ${fm(i.raw)}` } }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Age', font: { size: 11 } }, ticks: { font: { size: 11 }, maxTicksLimit: 18 }, grid: { color: '#2a2a2a' } },
+        y: { ticks: { callback: v => fm(v), font: { size: 11 } }, grid: { color: '#2a2a2a' } }
+      }
+    },
+    plugins: [vlinePlugin]
+  });
+
+  const legItems = [
+    ['#378ADD', 'Total NW', 'solid'], ['#1D9E75', 'Non-super NW', 'dashed'], ['#BA7517', 'Super', 'dotted'],
+    ...(fireAge ? [['#3B6D11', 'FIRE age', 'dashed']] : []),
+    ...(fireAge && fireAge < inp.pres ? [['#185FA5', 'Super access', 'dashed']] : [])
+  ];
+  document.getElementById('cLeg').innerHTML = legItems.map(([c, l, s]) =>
+    `<span class="legend-item"><span class="legend-line" style="border-top:2px ${s === 'solid' ? 'solid' : s === 'dashed' ? 'dashed' : 'dotted'} ${c};"></span>${l}</span>`
+  ).join('');
+
+  // ── TABLE ────────────────────────────────────────────────
+  const GRP = [
+    { label: '', n: 3 }, { label: 'Income &amp; Tax', n: 4 }, { label: 'Living Costs', n: 3 },
+    { label: 'Cash', n: 3 }, { label: 'Investments', n: 4 }, { label: 'Superannuation', n: 4 }, { label: 'Net Worth', n: 2 }
+  ];
+  const grpRow = GRP.map(g => `<th colspan="${g.n}" style="text-align:${g.label ? 'center' : 'left'};">${g.label}</th>`).join('');
+  const COLS = [
+    'Age', 'Year', 'Phase',
+    'Gross Salary', 'Tax + Medicare', 'Net Income', 'Employer SG',
+    'Expenses (CPI)', 'CPI Increase $', 'Cash Flow',
+    'Cash (BOY)', 'Cash Interest', 'Cash (EOY)',
+    'Invest (BOY)', 'Invest Growth', 'Net In/Out', 'Invest (EOY)',
+    'Super (BOY)', 'Contrib / Draw', 'Super Growth', 'Super (EOY)',
+    'Non-Super NW', 'Total NW'
+  ];
+  const colRow = COLS.map((h, i) => `<th style="text-align:${i < 3 ? 'left' : 'right'};">${h}</th>`).join('');
+
+  const bodyRows = rows.map((r, i) => {
+    const infDelta = i > 0 ? r.exp - rows[i - 1].exp : 0;
+    const isFireRow = r.isFire;
+    const lb = isFireRow ? 'border-fire' : r.retired && !r.post ? 'border-bridge' : r.retired && r.post ? 'border-super' : 'border-none';
+    const pT = r.age === inp.pres && fireAge && fireAge < inp.pres ? 'border-pres' : '';
+    const phCell = !r.retired
+      ? `<span class="phase-working">Working</span>`
+      : r.isFire
+        ? (!r.post
+          ? `<span class="phase-bridge">FIRE Pre-Super</span><span class="phase-tag">bridge starts</span>`
+          : `<span class="phase-super">FIRE + Super</span><span class="phase-tag">retired</span>`)
+        : r.post ? `<span class="phase-super">FIRE + Super</span>` : `<span class="phase-bridge">FIRE Pre-Super</span>`;
+    return `<tr class="${isFireRow ? 'row-fire' : ''}">
+      <td class="${lb} ${pT} mono" style="text-align:right;font-weight:500;">${r.age}</td>
+      <td class="${pT}" style="text-align:right;"><span class="mono dim">${r.yr}</span></td>
+      <td class="${pT}" style="text-align:left;">${phCell}</td>
+      <td class="${pT}" style="text-align:right;">${r.retired ? dash() : nS(r.salary)}</td>
+      <td class="${pT}" style="text-align:right;">${r.retired ? dash() : nS(r.t, 'neg')}</td>
+      <td class="${pT}" style="text-align:right;">${r.retired ? dash() : nS(r.netInc)}</td>
+      <td class="${pT}" style="text-align:right;">${r.retired ? dash() : nS(r.SG, 'info')}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.exp)}</td>
+      <td class="${pT}" style="text-align:right;">${i > 0 ? nS(infDelta, 'neg') : dash()}</td>
+      <td class="${pT}" style="text-align:right;">${cS(r.cashFlow)}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.cBOY)}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.cashInt, 'pos')}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.cEOY)}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.invBOY)}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.iGrowth, 'pos')}</td>
+      <td class="${pT}" style="text-align:right;">${cS(r.iDelta)}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.invEOY)}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.sBOY)}</td>
+      <td class="${pT}" style="text-align:right;">${cS(r.sContrib)}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.sGrowth, 'pos')}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.sEOY)}</td>
+      <td class="${pT}" style="text-align:right;">${nS(r.nonSW)}</td>
+      <td class="${pT}" style="text-align:right;"><strong class="mono">${fm(r.totalNW, '$0')}</strong></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('fTable').innerHTML = `<thead><tr>${grpRow}</tr><tr>${colRow}</tr></thead><tbody>${bodyRows}</tbody>`;
+}
+
+document.querySelectorAll('input').forEach(el => el.addEventListener('input', recalc));
+recalc();
+</script>
+</body>
+</html>
