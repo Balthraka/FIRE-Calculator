@@ -7,7 +7,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
     --color-bg: #0f0f0f;
     --color-bg-secondary: #1a1a1a;
@@ -33,61 +32,24 @@
     --radius-sm: 6px;
     --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
   }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--color-bg);
-    color: var(--color-text);
-    line-height: 1.5;
-    padding: 1.5rem;
-    min-height: 100vh;
-  }
-
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--color-bg); color: var(--color-text); line-height: 1.5; padding: 1.5rem; min-height: 100vh; }
   .container { max-width: 1400px; margin: 0 auto; }
-
   h1 { font-size: 24px; font-weight: 500; margin-bottom: 4px; }
   .subtitle { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
-
-  .card {
-    background: var(--color-bg-secondary);
-    border: 0.5px solid var(--color-border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .inputs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem 2.5rem;
-  }
-
-  .section-title {
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    color: var(--color-text-tertiary);
-    margin-bottom: 12px;
-  }
-
+  .card { background: var(--color-bg-secondary); border: 0.5px solid var(--color-border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.25rem; }
+  .inputs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem 2.5rem; }
+  .section-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .07em; color: var(--color-text-tertiary); margin-bottom: 12px; }
   .field { display: flex; flex-direction: column; gap: 10px; }
   .field > div { display: flex; flex-direction: column; }
+  label { display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 2px; }
+  .hint { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 3px; }
 
-  label {
-    display: block;
-    font-size: 12px;
-    color: var(--color-text-secondary);
-    margin-bottom: 2px;
-  }
+  /* Text inputs styled to match number inputs, with $ prefix */
+  .input-wrap { position: relative; display: flex; align-items: center; }
+  .input-prefix { position: absolute; left: 10px; font-size: 13px; color: var(--color-text-tertiary); pointer-events: none; z-index: 1; }
+  .input-suffix { position: absolute; right: 10px; font-size: 13px; color: var(--color-text-tertiary); pointer-events: none; z-index: 1; }
 
-  .hint {
-    font-size: 11px;
-    color: var(--color-text-tertiary);
-    margin-bottom: 3px;
-  }
-
-  input[type="number"] {
+  input[type="text"], input[type="number"] {
     width: 100%;
     background: var(--color-bg-tertiary);
     border: 0.5px solid var(--color-border-secondary);
@@ -97,57 +59,41 @@
     font-size: 13px;
     outline: none;
     transition: border-color 0.15s;
+    font-family: inherit;
   }
-  input[type="number"]:focus { border-color: var(--color-accent); }
+  input[type="text"]:focus, input[type="number"]:focus { border-color: var(--color-accent); }
+  .has-prefix input[type="text"] { padding-left: 22px; }
+  .has-suffix input[type="text"], .has-suffix input[type="number"] { padding-right: 30px; }
 
-  button {
-    background: var(--color-accent);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-sm);
-    padding: 8px 18px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  button:hover { opacity: 0.85; }
-
-  .toolbar {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 0.5px solid var(--color-border);
+  /* SG output pill */
+  .sg-output {
+    margin-top: 6px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(55,138,221,0.08);
+    border: 0.5px solid rgba(55,138,221,0.2);
+    border-radius: var(--radius-sm);
   }
+  .sg-output .sg-label { font-size: 11px; color: var(--color-text-secondary); }
+  .sg-output .sg-val { font-size: 13px; font-weight: 500; color: var(--color-info); font-family: var(--font-mono); margin-left: auto; }
+
+  button { background: var(--color-accent); color: #fff; border: none; border-radius: var(--radius-sm); padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  button:hover { opacity: 0.85; }
+  .toolbar { margin-top: 1rem; padding-top: 1rem; border-top: 0.5px solid var(--color-border); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .toolbar span { font-size: 11px; color: var(--color-text-tertiary); }
 
-  /* Result banners */
-  .banner {
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-  }
+  .banner { border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
   .banner-success { background: var(--color-success-bg); border: 0.5px solid var(--color-success-border); }
   .banner-danger  { background: var(--color-danger-bg);  border: 0.5px solid var(--color-danger-border); }
   .banner-warning { background: var(--color-warning-bg); border: 0.5px solid var(--color-warning-border); }
-
-  .banner-label {
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    margin-bottom: 6px;
-  }
+  .banner-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
   .banner-label-success { color: var(--color-success); }
   .banner-label-warning { color: var(--color-warning); }
-
   .fire-age { font-size: 28px; font-weight: 500; }
   .fire-sub  { font-size: 14px; color: var(--color-text-secondary); margin-top: 5px; }
   .fire-detail { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
-
   .banner-row { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
   .banner-stats { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
   .stat-box { text-align: center; }
@@ -155,125 +101,47 @@
   .stat-lbl { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
   .stat-sub { font-size: 11px; color: var(--color-text-tertiary); }
 
-  /* Summary cards */
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    margin-bottom: 1.25rem;
-  }
-  .sum-card {
-    background: var(--color-bg-tertiary);
-    border-radius: var(--radius-sm);
-    padding: 1rem;
-  }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .sum-card { background: var(--color-bg-tertiary); border-radius: var(--radius-sm); padding: 1rem; }
   .sum-card .sl { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
   .sum-card .sv { font-size: 17px; font-weight: 500; font-family: var(--font-mono); }
   .sum-card .ss { font-size: 11px; color: var(--color-text-tertiary); margin-top: 3px; }
 
-  /* Readiness panels */
-  .readiness-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 12px;
-  }
-  .readiness-panel {
-    background: var(--color-bg-tertiary);
-    border-radius: var(--radius-sm);
-    padding: 1rem;
-  }
-  .readiness-label {
-    font-size: 10px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    margin-bottom: 8px;
-  }
+  .readiness-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .readiness-panel { background: var(--color-bg-tertiary); border-radius: var(--radius-sm); padding: 1rem; }
+  .readiness-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
   .readiness-desc { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 10px; }
   .readiness-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
   .readiness-stat .rs-lbl { font-size: 11px; color: var(--color-text-tertiary); }
   .readiness-stat .rs-val { font-size: 20px; font-weight: 500; }
-  .readiness-footer {
-    font-size: 12px;
-    color: var(--color-text-secondary);
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    border-top: 0.5px solid var(--color-border);
-    padding-top: 8px;
-    margin-bottom: 8px;
-  }
+  .readiness-footer { font-size: 12px; color: var(--color-text-secondary); display: flex; gap: 16px; flex-wrap: wrap; border-top: 0.5px solid var(--color-border); padding-top: 8px; margin-bottom: 8px; }
   .readiness-note { font-size: 12px; color: var(--color-text-secondary); }
 
-  /* Chart */
-  .chart-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
+  .chart-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
   .chart-title { font-size: 13px; font-weight: 500; }
   .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--color-text-secondary); }
   .legend-item { display: flex; align-items: center; gap: 5px; }
   .legend-line { width: 14px; display: inline-block; }
   .chart-wrap { position: relative; width: 100%; height: 240px; }
 
-  /* Table */
-  .table-header {
-    padding: 1rem 1.25rem 0.75rem;
-    border-bottom: 0.5px solid var(--color-border);
-  }
+  .table-header { padding: 1rem 1.25rem 0.75rem; border-bottom: 0.5px solid var(--color-border); }
   .table-header h3 { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
   .table-header p { font-size: 12px; color: var(--color-text-secondary); }
   .table-scroll { overflow-x: auto; max-height: 640px; overflow-y: auto; }
-
   table { border-collapse: collapse; white-space: nowrap; font-size: 12px; width: 100%; }
-
-  thead tr:first-child th {
-    padding: 4px 10px;
-    font-size: 10px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    color: var(--color-text-tertiary);
-    background: var(--color-bg-tertiary);
-    border-bottom: 0.5px solid var(--color-border);
-    position: sticky;
-    top: 0;
-    z-index: 3;
-  }
-
-  thead tr:second-child th,
-  thead tr:nth-child(2) th {
-    padding: 6px 10px;
-    font-weight: 500;
-    font-size: 11px;
-    color: var(--color-text-secondary);
-    border-bottom: 0.5px solid var(--color-border-secondary);
-    position: sticky;
-    top: 28px;
-    z-index: 2;
-    background: var(--color-bg-secondary);
-    white-space: nowrap;
-  }
-
+  thead tr:first-child th { padding: 4px 10px; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .07em; color: var(--color-text-tertiary); background: var(--color-bg-tertiary); border-bottom: 0.5px solid var(--color-border); position: sticky; top: 0; z-index: 3; }
+  thead tr:nth-child(2) th { padding: 6px 10px; font-weight: 500; font-size: 11px; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-secondary); position: sticky; top: 0; z-index: 2; background: var(--color-bg-secondary); white-space: nowrap; }
   tbody tr:hover { background: rgba(255,255,255,0.02); }
-
   tbody td { padding: 5px 10px; text-align: right; }
-
   .mono { font-family: var(--font-mono); }
   .dim  { color: var(--color-text-tertiary); }
   .pos  { color: var(--color-success); }
   .neg  { color: var(--color-danger); }
-  .info { color: var(--color-info); }
-
-  .phase-working    { font-size: 11px; color: var(--color-text-secondary); }
-  .phase-bridge     { font-size: 11px; font-weight: 500; color: var(--color-warning); }
-  .phase-super      { font-size: 11px; font-weight: 500; color: var(--color-success); }
-  .phase-tag        { font-size: 10px; color: var(--color-text-tertiary); margin-left: 4px; }
-
+  .info-c { color: var(--color-info); }
+  .phase-working { font-size: 11px; color: var(--color-text-secondary); }
+  .phase-bridge  { font-size: 11px; font-weight: 500; color: var(--color-warning); }
+  .phase-super   { font-size: 11px; font-weight: 500; color: var(--color-success); }
+  .phase-tag     { font-size: 10px; color: var(--color-text-tertiary); margin-left: 4px; }
   .row-fire { background: rgba(61,158,64,0.07) !important; }
   .border-fire   { border-left: 3px solid #3B6D11; }
   .border-bridge { border-left: 3px solid #BA7517; }
@@ -284,46 +152,146 @@
 </head>
 <body>
 <div class="container">
-
   <h1>Australian FIRE Calculator</h1>
   <p class="subtitle">Sequential drawdown: Cash → Investments → Super · Bridge &amp; total failure diagnostics · Tax-accurate</p>
 
-  <!-- INPUTS -->
   <div class="card">
     <div class="inputs-grid">
+
+      <!-- PERSONAL -->
       <div>
         <p class="section-title">Personal</p>
         <div class="field">
-          <div><label>Current age</label><input type="number" id="i_age" value="35" min="18" max="80"></div>
-          <div><label>Projected age of death</label><input type="number" id="i_death" value="90" min="60" max="120"></div>
-          <div><label>Super preservation age</label><input type="number" id="i_pres" value="60" min="55" max="65"></div>
+          <div>
+            <label>Current age</label>
+            <input type="number" id="i_age" value="35" min="18" max="80">
+          </div>
+          <div>
+            <label>Projected age of death</label>
+            <input type="number" id="i_death" value="100" min="60" max="120">
+          </div>
+          <div>
+            <label>Super preservation age</label>
+            <input type="number" id="i_pres" value="60" min="55" max="65">
+          </div>
         </div>
       </div>
+
+      <!-- CURRENT ASSETS -->
       <div>
         <p class="section-title">Current Assets</p>
         <div class="field">
-          <div><label>Cash &amp; savings ($)</label><div class="hint">Earns cash return · spent first in retirement</div><input type="number" id="i_cash" value="50000" min="0" step="5000"></div>
-          <div><label>Investment portfolio ($)</label><div class="hint">Spent after cash is exhausted</div><input type="number" id="i_invest" value="150000" min="0" step="5000"></div>
-          <div><label>Superannuation balance ($)</label><div class="hint">Locked until preservation age · drawn last</div><input type="number" id="i_super" value="100000" min="0" step="5000"></div>
+          <div>
+            <label>Cash Balance</label>
+            <div class="hint">Earns cash return · spent first in retirement</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="text" id="i_cash" value="50,000" data-raw="50000">
+            </div>
+          </div>
+          <div>
+            <label>Investment Balance</label>
+            <div class="hint">Spent after cash is exhausted</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="text" id="i_invest" value="150,000" data-raw="150000">
+            </div>
+          </div>
+          <div>
+            <label>Superannuation Balance</label>
+            <div class="hint">Locked until preservation age · drawn last</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="text" id="i_super" value="100,000" data-raw="100000">
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- INCOME & EXPENSES -->
       <div>
         <p class="section-title">Income &amp; Expenses</p>
         <div class="field">
-          <div><label>Gross salary excl. super ($)</label><input type="number" id="i_salary" value="120000" min="0" step="5000"></div>
-          <div><label>Annual living expenses ($)</label><div class="hint">Today's dollars — CPI-inflated each year</div><input type="number" id="i_exp" value="70000" min="0" step="1000"></div>
-          <div><label>Salary sacrifice / extra super ($)</label><div class="hint">Reduces taxable income · max $30K total concessional</div><input type="number" id="i_vs" value="0" min="0" step="500"></div>
+          <div>
+            <label>Gross salary excl. super</label>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="text" id="i_salary" value="120,000" data-raw="120000">
+            </div>
+            <div class="sg-output">
+              <span class="sg-label">Employer Super Guarantee (12%)</span>
+              <span class="sg-val" id="sg_display">$14,400 / yr</span>
+            </div>
+          </div>
+          <div>
+            <label>Other Employment Income</label>
+            <div class="hint">e.g. bonus · taxed as income · SG applies · adds to super</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="text" id="i_othemp" value="0" data-raw="0">
+            </div>
+          </div>
+          <div>
+            <label>Salary sacrifice / extra super</label>
+            <div class="hint">Reduces taxable income · max $30K total concessional</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="text" id="i_vs" value="0" data-raw="0">
+            </div>
+          </div>
+          <div>
+            <label>Other Income</label>
+            <div class="hint">e.g. rental income · taxed as income · no SG · goes to cash</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="text" id="i_othinc" value="0" data-raw="0">
+            </div>
+          </div>
+          <div>
+            <label>Annual living expenses</label>
+            <div class="hint">Today's dollars — CPI-inflated each year</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="text" id="i_exp" value="70,000" data-raw="70000">
+            </div>
+          </div>
         </div>
       </div>
       <div>
         <p class="section-title">Growth Rates</p>
         <div class="field">
-          <div><label>Cash / HISA return (% p.a.)</label><input type="number" id="i_cir" value="4.5" min="0" max="15" step="0.25"></div>
-          <div><label>Investment return (% p.a.)</label><input type="number" id="i_ir" value="7" min="0" max="20" step="0.5"></div>
-          <div><label>Super return (% p.a.)</label><div class="hint">15% tax accumulation · 0% pension phase</div><input type="number" id="i_sr" value="7" min="0" max="20" step="0.5"></div>
-          <div><label>Inflation (% p.a.)</label><input type="number" id="i_inf" value="3" min="0" max="10" step="0.5"></div>
+          <div>
+            <label>Cash Return (% p.a.)</label>
+            <div class="input-wrap has-suffix">
+              <input type="number" id="i_cir" value="5" min="0" max="15" step="0.25">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
+          <div>
+            <label>Investment return (% p.a.)</label>
+            <div class="input-wrap has-suffix">
+              <input type="number" id="i_ir" value="7" min="0" max="20" step="0.5">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
+          <div>
+            <label>Super return (% p.a.)</label>
+            <div class="hint">15% tax accumulation · 0% pension phase</div>
+            <div class="input-wrap has-suffix">
+              <input type="number" id="i_sr" value="7" min="0" max="20" step="0.5">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
+          <div>
+            <label>Inflation (% p.a.)</label>
+            <div class="input-wrap has-suffix">
+              <input type="number" id="i_inf" value="3" min="0" max="10" step="0.5">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
         </div>
       </div>
+
     </div>
     <div class="toolbar">
       <button onclick="recalc()">Recalculate</button>
@@ -331,43 +299,86 @@
     </div>
   </div>
 
-  <!-- RESULTS -->
   <div id="fireResult"></div>
   <div id="cliffNote"></div>
   <div id="readinessCard"></div>
   <div id="sumCards" class="summary-grid"></div>
 
-  <!-- CHART -->
   <div class="card">
     <div class="chart-header">
       <p class="chart-title">Net worth projection</p>
       <div class="legend" id="cLeg"></div>
     </div>
-    <div class="chart-wrap">
-      <canvas id="fChart"></canvas>
-    </div>
+    <div class="chart-wrap"><canvas id="fChart"></canvas></div>
   </div>
 
-  <!-- TABLE -->
   <div class="card" style="padding:0;overflow:hidden;">
     <div class="table-header">
       <h3>Year-by-year ledger</h3>
       <p>Nominal dollars · Scroll right for all columns ·
         <span style="color:var(--color-warning);font-weight:500;">Amber</span> = pre-super bridge ·
         <span style="color:var(--color-success);font-weight:500;">Green</span> = super phase ·
-        Drawdown order: Cash → Invest → Super
+        Drawdown: Cash → Invest → Super
       </p>
     </div>
-    <div class="table-scroll" id="tWrap">
-      <table id="fTable"></table>
-    </div>
+    <div class="table-scroll"><table id="fTable"></table></div>
   </div>
-
 </div>
+
 <script>
 const Y0 = 2026;
 let chart = null;
 
+// ── COMMA FORMATTING ──────────────────────────────────────
+function stripCommas(v) { return parseFloat(String(v).replace(/[^0-9.-]/g, '')) || 0; }
+function addCommas(n) {
+  if (n === '' || n === null || isNaN(n)) return '';
+  const parts = parseFloat(n).toLocaleString('en-AU', { maximumFractionDigits: 0 }).split('.');
+  return parts[0];
+}
+
+function initCurrencyInput(el) {
+  el.addEventListener('focus', function() {
+    const raw = stripCommas(this.value);
+    this.value = raw === 0 ? '' : String(raw);
+    this.dataset.raw = raw;
+  });
+  el.addEventListener('input', function() {
+    this.dataset.raw = stripCommas(this.value);
+  });
+  el.addEventListener('blur', function() {
+    const raw = stripCommas(this.value);
+    this.dataset.raw = raw;
+    this.value = addCommas(raw);
+    updateSGDisplay();
+    recalc();
+  });
+}
+
+function getRaw(id) {
+  const el = document.getElementById(id);
+  if (el.type === 'text') return parseFloat(el.dataset.raw) || 0;
+  return parseFloat(el.value) || 0;
+}
+
+// Init all currency text inputs
+document.addEventListener('DOMContentLoaded', () => {
+  ['i_cash','i_invest','i_super','i_salary','i_exp','i_vs','i_othemp','i_othinc'].forEach(id => {
+    initCurrencyInput(document.getElementById(id));
+  });
+  document.querySelectorAll('input[type="number"]').forEach(el => el.addEventListener('input', () => { updateSGDisplay(); recalc(); }));
+  updateSGDisplay();
+  recalc();
+});
+
+function updateSGDisplay() {
+  const salary = getRaw('i_salary');
+  const otherEmp = getRaw('i_othemp');
+  const sg = (salary + otherEmp) * 0.12;
+  document.getElementById('sg_display').textContent = '$' + Math.round(sg).toLocaleString('en-AU') + ' / yr';
+}
+
+// ── TAX & SUPER ───────────────────────────────────────────
 function calcTax(inc) {
   let t = 0;
   if (inc <= 18200) t = 0;
@@ -382,9 +393,9 @@ function calcTax(inc) {
   t = Math.max(0, t - lito);
   return Math.round(t + (inc > 26000 ? inc * 0.02 : 0));
 }
-
 function getSG(yr) { return yr >= 2025 ? 0.12 : 0.115; }
 
+// ── FIRE CHECK ────────────────────────────────────────────
 function canFIRE(age, c, inv, s, exp, p) {
   let C = c, I = inv, S = s, E = exp;
   for (let a = age; a <= p.death; a++) {
@@ -405,8 +416,8 @@ function canFIRE(age, c, inv, s, exp, p) {
   return true;
 }
 
+// ── READINESS ANALYSIS ────────────────────────────────────
 function analyseRetirement(age, c, inv, s, exp, p) {
-  // Bridge check
   let C = c, I = inv, S = s, E = exp;
   let bridgeOK = true, brokeAtBridge = null, superAtBrokeAge = null;
   for (let a = age; a < p.pres; a++) {
@@ -417,7 +428,6 @@ function analyseRetirement(age, c, inv, s, exp, p) {
     C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S += S * p.sr * 0.85;
     E *= (1 + p.inf);
   }
-  // Total check (post-pres, only if bridge passed)
   let totalOK = false, brokeAtTotal = null;
   if (bridgeOK) {
     for (let a = p.pres; a <= p.death; a++) {
@@ -430,7 +440,6 @@ function analyseRetirement(age, c, inv, s, exp, p) {
     }
     totalOK = (brokeAtTotal === null);
   }
-  // Total-if-accessible check (only if bridge failed)
   let totalOKIfAccessible = false;
   if (!bridgeOK) {
     let CA = c, IA = inv, SA = s, EA = exp, ok = true;
@@ -468,6 +477,7 @@ function findBrokeAge(retireAge, c, inv, s, exp, p) {
   return null;
 }
 
+// ── SIMULATE ──────────────────────────────────────────────
 function simulate(inp) {
   const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir };
   let c = inp.c, inv = inp.inv, s = inp.s, e = inp.e;
@@ -479,9 +489,12 @@ function simulate(inp) {
     const row = { age, yr, cBOY: c, invBOY: inv, sBOY: s, exp: e, retired, post, isFire: retired && age === fireAge };
     const cashInt = c * p.cir;
     if (!retired) {
-      const SG = inp.salary * getSG(yr), maxCC = 30000;
+      const totalEmpInc = inp.salary + inp.otherEmpInc;
+      const SG = totalEmpInc * getSG(yr), maxCC = 30000;
       const volCC = Math.min(inp.vs, Math.max(0, maxCC - SG));
-      const taxInc = inp.salary - volCC, t = calcTax(taxInc), netInc = taxInc - t;
+      // Taxable income = all employment income + other income - salary sacrifice
+      const taxInc = totalEmpInc + inp.otherInc - volCC;
+      const t = calcTax(taxInc), netInc = taxInc - t;
       const iGrowth = inv * p.ir, sGrowth = s * p.sr * 0.85;
       const sgNet = SG * 0.85, vcNet = volCC * 0.85;
       c += cashInt;
@@ -489,7 +502,7 @@ function simulate(inp) {
       if (cashFlow >= 0) { iDelta = cashFlow; inv = inv + iGrowth + cashFlow; }
       else { const def = -cashFlow, cD = Math.min(c, def); c -= cD; const iD = Math.min(inv + iGrowth, def - cD); inv = Math.max(0, inv + iGrowth - iD); iDelta = -iD; }
       s += sgNet + vcNet + sGrowth;
-      Object.assign(row, { salary: inp.salary, t, netInc, cashInt, cashFlow, SG, volCC, sContrib: sgNet + vcNet, iGrowth, iDelta, sGrowth });
+      Object.assign(row, { salary: totalEmpInc, t, netInc, cashInt, cashFlow, SG, volCC, sContrib: sgNet + vcNet, iGrowth, iDelta, sGrowth });
     } else if (!post) {
       const iGrowth = inv * p.ir, sGrowth = s * p.sr * 0.85;
       c += cashInt;
@@ -511,26 +524,39 @@ function simulate(inp) {
   return { rows, fireAge };
 }
 
+// ── FORMAT HELPERS ────────────────────────────────────────
 function fm(n, z = '—') {
   if (n === undefined || n === null) return z;
   if (Math.round(Math.abs(n)) < 1) return '$0';
   const a = Math.abs(n), sg = n < 0 ? '-' : '';
   if (a >= 1e6) return sg + '$' + (a / 1e6).toFixed(2) + 'M';
-  if (a >= 10000) return sg + '$' + Math.round(a / 1000) + 'K';
+  if (a >= 10000) return sg + '$' + Math.round(a / 1000).toLocaleString('en-AU') + 'K';
   if (a >= 1000) return sg + '$' + (a / 1000).toFixed(1) + 'K';
-  return sg + '$' + Math.round(a);
+  return sg + '$' + Math.round(a).toLocaleString('en-AU');
 }
 function nS(n, cls = '') { return `<span class="mono ${cls}">${fm(n, '$0')}</span>`; }
 function cS(n) { return nS(n, n < 0 ? 'neg' : n > 0 ? 'pos' : ''); }
 function dash() { return `<span class="dim">—</span>`; }
 
+// Measure first header row after render and pin second row exactly beneath it
+function fixStickyHeaders() {
+  const table = document.getElementById('fTable');
+  const rows = table.querySelectorAll('thead tr');
+  if (rows.length >= 2) {
+    const h = rows[0].getBoundingClientRect().height;
+    rows[1].querySelectorAll('th').forEach(th => th.style.top = h + 'px');
+  }
+}
+
+// ── RECALC ────────────────────────────────────────────────
 function recalc() {
-  const g = id => +document.getElementById(id).value;
   const inp = {
-    age: g('i_age'), death: g('i_death'), pres: g('i_pres'),
-    c: g('i_cash'), inv: g('i_invest'), s: g('i_super'),
-    salary: g('i_salary'), e: g('i_exp'), vs: g('i_vs'),
-    cir: g('i_cir') / 100, ir: g('i_ir') / 100, sr: g('i_sr') / 100, inf: g('i_inf') / 100
+    age: getRaw('i_age'), death: getRaw('i_death'), pres: getRaw('i_pres'),
+    c: getRaw('i_cash'), inv: getRaw('i_invest'), s: getRaw('i_super'),
+    salary: getRaw('i_salary'), e: getRaw('i_exp'), vs: getRaw('i_vs'),
+    otherEmpInc: getRaw('i_othemp'), otherInc: getRaw('i_othinc'),
+    cir: getRaw('i_cir') / 100, ir: getRaw('i_ir') / 100,
+    sr: getRaw('i_sr') / 100, inf: getRaw('i_inf') / 100
   };
   if (inp.death <= inp.age) return;
   const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir };
@@ -539,7 +565,7 @@ function recalc() {
   const fr = rows.find(r => r.isFire);
   const impliedSWR = fr ? (fr.exp / fr.totalNW * 100) : null;
 
-  // ── FIRE RESULT ─────────────────────────────────────────
+  // ── FIRE RESULT ──────────────────────────────────────────
   const fe = document.getElementById('fireResult');
   if (!fireAge) {
     fe.innerHTML = `<div class="banner banner-danger" style="text-align:center;margin-bottom:1rem;">
@@ -613,20 +639,17 @@ function recalc() {
     }
   } else cn.innerHTML = '';
 
-  // ── RETIREMENT READINESS ─────────────────────────────────
+  // ── READINESS ANALYSIS ───────────────────────────────────
   let scenA = null, scenB = null;
   const workingRows = rows.filter(r => !r.retired && r.age < (fireAge || inp.death));
   for (const row of workingRows) {
     const res = analyseRetirement(row.age, row.cBOY, row.invBOY, row.sBOY, row.exp, p);
-    if (!scenA && res.bridgeOK && !res.totalOK) {
+    if (!scenA && res.bridgeOK && !res.totalOK)
       scenA = { retireAge: row.age, brokeAtTotal: res.brokeAtTotal, nonSuper: row.cBOY + row.invBOY, super_: row.sBOY, exp: row.exp };
-    }
-    if (!scenB && !res.bridgeOK && res.totalOKIfAccessible) {
+    if (!scenB && !res.bridgeOK && res.totalOKIfAccessible)
       scenB = { retireAge: row.age, brokeAtBridge: res.brokeAtBridge, superAtBroke: res.superAtBrokeAge, nonSuper: row.cBOY + row.invBOY, super_: row.sBOY, exp: row.exp };
-    }
     if (scenA && scenB) break;
   }
-
   const rc = document.getElementById('readinessCard');
   if (scenA || scenB) {
     const panelA = scenA ? `
@@ -634,7 +657,7 @@ function recalc() {
         <div class="readiness-label" style="color:var(--color-warning);">Bridge ✓ &nbsp;·&nbsp; Total ✗</div>
         <div class="readiness-desc">First age where non-super bridges to ${inp.pres}, but total assets run out before death age ${inp.death}</div>
         <div class="readiness-stats">
-          <div class="readiness-stat"><div class="rs-lbl">Retire at</div><div class="rs-val"">Age ${scenA.retireAge}</div></div>
+          <div class="readiness-stat"><div class="rs-lbl">Retire at</div><div class="rs-val">Age ${scenA.retireAge}</div></div>
           <div class="readiness-stat"><div class="rs-lbl">Runs out at</div><div class="rs-val" style="color:var(--color-danger);">Age ${scenA.brokeAtTotal}</div></div>
           <div class="readiness-stat"><div class="rs-lbl">Survives</div><div class="rs-val">${scenA.brokeAtTotal - scenA.retireAge}yr</div></div>
         </div>
@@ -643,12 +666,11 @@ function recalc() {
           <span>Super (locked): <strong>${fm(scenA.super_)}</strong></span>
           <span>Annual spend: <strong>${fm(scenA.exp)}</strong></span>
         </div>
-        <div class="readiness-note">Super hasn't accumulated enough yet. Need more time for employer SG to compound before post-60 drawdown can last to age ${inp.death}.</div>
+        <div class="readiness-note">Super hasn't accumulated enough yet. Need more time for employer SG to compound before post-${inp.pres} drawdown can last to age ${inp.death}.</div>
       </div>` :
       `<div class="readiness-panel" style="border-left:3px solid var(--color-border);">
         <div class="readiness-note dim">No age found where bridge succeeds but total fails before your FIRE date.</div>
       </div>`;
-
     const panelB = scenB ? `
       <div class="readiness-panel" style="border-left:3px solid var(--color-info);">
         <div class="readiness-label" style="color:var(--color-info);">Bridge ✗ &nbsp;·&nbsp; Total ✓ (if super were accessible)</div>
@@ -668,7 +690,6 @@ function recalc() {
       `<div class="readiness-panel" style="border-left:3px solid var(--color-border);">
         <div class="readiness-note dim">No age found where total passes (if accessible) but bridge fails before your FIRE date.</div>
       </div>`;
-
     rc.innerHTML = `<div class="card" style="margin-bottom:1.25rem;">
       <p style="font-size:13px;font-weight:500;margin-bottom:4px;">Retirement readiness analysis</p>
       <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem;">The two failure modes before FIRE — which constraint is binding and when each one resolves</p>
@@ -731,7 +752,6 @@ function recalc() {
     },
     plugins: [vlinePlugin]
   });
-
   const legItems = [
     ['#378ADD', 'Total NW', 'solid'], ['#1D9E75', 'Non-super NW', 'dashed'], ['#BA7517', 'Super', 'dotted'],
     ...(fireAge ? [['#3B6D11', 'FIRE age', 'dashed']] : []),
@@ -742,66 +762,114 @@ function recalc() {
   ).join('');
 
   // ── TABLE ────────────────────────────────────────────────
+  // Column groups — 19 columns total
+  // 3 + 1 + 4 + 2 + 2 + 1 + 1 + 5 = 19
   const GRP = [
-    { label: '', n: 3 }, { label: 'Income &amp; Tax', n: 4 }, { label: 'Living Costs', n: 3 },
-    { label: 'Cash', n: 3 }, { label: 'Investments', n: 4 }, { label: 'Superannuation', n: 4 }, { label: 'Net Worth', n: 2 }
+    { label: '',                                        n: 3, align: 'left'   },
+    { label: 'Net Worth (ex. Super) SoY',              n: 1, align: 'center' },
+    { label: 'Income',                                 n: 4, align: 'center' },
+    { label: 'Cash',                                   n: 2, align: 'center' },
+    { label: 'Investments',                            n: 2, align: 'center' },
+    { label: 'Expenses',                               n: 1, align: 'center' },
+    { label: 'Net Worth (ex. Super) EoY',              n: 1, align: 'center' },
+    { label: 'Super',                                  n: 5, align: 'center' },
   ];
-  const grpRow = GRP.map(g => `<th colspan="${g.n}" style="text-align:${g.label ? 'center' : 'left'};">${g.label}</th>`).join('');
+
+  const grpStyle = 'padding:4px 10px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);background:var(--color-bg-tertiary);border-bottom:0.5px solid var(--color-border);position:sticky;top:0;z-index:3;white-space:nowrap;';
+  const grpRow = GRP.map(g =>
+    `<th colspan="${g.n}" style="${grpStyle}text-align:${g.align};border-right:1px solid var(--color-border);">${g.label}</th>`
+  ).join('');
+
+  // Column headers
   const COLS = [
-    'Age', 'Year', 'Phase',
-    'Gross Salary', 'Tax + Medicare', 'Net Income', 'Employer SG',
-    'Expenses (CPI)', 'CPI Increase $', 'Cash Flow',
-    'Cash (BOY)', 'Cash Interest', 'Cash (EOY)',
-    'Invest (BOY)', 'Invest Growth', 'Net In/Out', 'Invest (EOY)',
-    'Super (BOY)', 'Contrib / Draw', 'Super Growth', 'Super (EOY)',
-    'Non-Super NW', 'Total NW'
+    // Identity (3)
+    { h: 'Age',             left: true  },
+    { h: 'Year',            left: true  },
+    { h: 'Phase',           left: true  },
+    // NW BOY (1)
+    { h: 'Net Worth',       left: false },
+    // Income (4)
+    { h: 'Salary',          left: false },
+    { h: 'Tax etc',         left: false },
+    { h: 'Net Income',      left: false },
+    { h: 'Employer SG',     left: false },
+    // Cash (2)
+    { h: 'Cash',            left: false },
+    { h: 'Cash Return',     left: false },
+    // Investments (2)
+    { h: 'Investments',     left: false },
+    { h: 'Growth',          left: false },
+    // Expenses (1)
+    { h: 'Expenses (CPI)',  left: false },
+    // NW EOY (1)
+    { h: 'Net Worth',       left: false },
+    // Super (5)
+    { h: 'Super (Start)',   left: false },
+    { h: 'Contributions',   left: false },
+    { h: 'Growth',          left: false },
+    { h: 'Draw',            left: false },
+    { h: 'Super (End)',     left: false },
   ];
-  const colRow = COLS.map((h, i) => `<th style="text-align:${i < 3 ? 'left' : 'right'};">${h}</th>`).join('');
+
+  // Section divider indices (right-border after these col indices, 0-based)
+  const dividers = new Set([2, 3, 7, 9, 11, 12, 13]);
+
+  const thStyle = 'padding:6px 10px;font-weight:500;font-size:11px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-secondary);position:sticky;top:28px;z-index:2;background:var(--color-bg-secondary);white-space:nowrap;';
+  const colRow = COLS.map((c, i) =>
+    `<th style="${thStyle}text-align:${c.left ? 'left' : 'right'};${dividers.has(i) ? 'border-right:1px solid var(--color-border);' : ''}">${c.h}</th>`
+  ).join('');
 
   const bodyRows = rows.map((r, i) => {
-    const infDelta = i > 0 ? r.exp - rows[i - 1].exp : 0;
-    const isFireRow = r.isFire;
-    const lb = isFireRow ? 'border-fire' : r.retired && !r.post ? 'border-bridge' : r.retired && r.post ? 'border-super' : 'border-none';
-    const pT = r.age === inp.pres && fireAge && fireAge < inp.pres ? 'border-pres' : '';
+    const lb    = r.isFire ? 'border-fire' : r.retired && !r.post ? 'border-bridge' : r.retired && r.post ? 'border-super' : 'border-none';
+    const pT    = r.age === inp.pres && fireAge && fireAge < inp.pres ? 'border-pres' : '';
+    const div   = (idx) => dividers.has(idx) ? 'border-right:1px solid var(--color-border);' : '';
+    const td    = (idx, content, extra = '') =>
+      `<td style="padding:5px 10px;text-align:right;${pT ? 'border-top:2px solid #185FA5;' : ''}${div(idx)}${extra}">${content}</td>`;
+    const tdL   = (idx, content) =>
+      `<td style="padding:5px 10px;text-align:left;${pT ? 'border-top:2px solid #185FA5;' : ''}${div(idx)}">${content}</td>`;
+
     const phCell = !r.retired
       ? `<span class="phase-working">Working</span>`
       : r.isFire
         ? (!r.post
           ? `<span class="phase-bridge">FIRE Pre-Super</span><span class="phase-tag">bridge starts</span>`
           : `<span class="phase-super">FIRE + Super</span><span class="phase-tag">retired</span>`)
-        : r.post ? `<span class="phase-super">FIRE + Super</span>` : `<span class="phase-bridge">FIRE Pre-Super</span>`;
-    return `<tr class="${isFireRow ? 'row-fire' : ''}">
-      <td class="${lb} ${pT} mono" style="text-align:right;font-weight:500;">${r.age}</td>
-      <td class="${pT}" style="text-align:right;"><span class="mono dim">${r.yr}</span></td>
-      <td class="${pT}" style="text-align:left;">${phCell}</td>
-      <td class="${pT}" style="text-align:right;">${r.retired ? dash() : nS(r.salary)}</td>
-      <td class="${pT}" style="text-align:right;">${r.retired ? dash() : nS(r.t, 'neg')}</td>
-      <td class="${pT}" style="text-align:right;">${r.retired ? dash() : nS(r.netInc)}</td>
-      <td class="${pT}" style="text-align:right;">${r.retired ? dash() : nS(r.SG, 'info')}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.exp)}</td>
-      <td class="${pT}" style="text-align:right;">${i > 0 ? nS(infDelta, 'neg') : dash()}</td>
-      <td class="${pT}" style="text-align:right;">${cS(r.cashFlow)}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.cBOY)}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.cashInt, 'pos')}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.cEOY)}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.invBOY)}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.iGrowth, 'pos')}</td>
-      <td class="${pT}" style="text-align:right;">${cS(r.iDelta)}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.invEOY)}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.sBOY)}</td>
-      <td class="${pT}" style="text-align:right;">${cS(r.sContrib)}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.sGrowth, 'pos')}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.sEOY)}</td>
-      <td class="${pT}" style="text-align:right;">${nS(r.nonSW)}</td>
-      <td class="${pT}" style="text-align:right;"><strong class="mono">${fm(r.totalNW, '$0')}</strong></td>
+        : r.post
+          ? `<span class="phase-super">FIRE + Super</span>`
+          : `<span class="phase-bridge">FIRE Pre-Super</span>`;
+
+    const nwBOY   = r.cBOY + r.invBOY;
+    const nwEOY   = r.cEOY + r.invEOY;
+    // Super: separate contributions (working only) from draws (post-pres retired only)
+    const sContribDisplay = !r.retired ? nS(r.sContrib, 'pos') : dash();
+    const sDrawDisplay    = (r.retired && r.post && r.sContrib < 0) ? nS(-r.sContrib, 'neg') : dash();
+
+    return `<tr class="${r.isFire ? 'row-fire' : ''}">
+      <td class="${lb} ${pT} mono" style="padding:5px 10px;text-align:right;font-weight:500;${pT ? 'border-top:2px solid #185FA5;' : ''}${div(0)}">${r.age}</td>
+      ${tdL(1, `<span class="mono dim">${r.yr}</span>`)}
+      ${tdL(2, phCell)}
+      ${td(3,  `<strong class="mono">${fm(nwBOY, '$0')}</strong>`)}
+      ${td(4,  r.retired ? dash() : nS(r.salary))}
+      ${td(5,  r.retired ? dash() : nS(r.t, 'neg'))}
+      ${td(6,  r.retired ? dash() : nS(r.netInc))}
+      ${td(7,  r.retired ? dash() : nS(r.SG, 'info-c'))}
+      ${td(8,  nS(r.cBOY))}
+      ${td(9,  nS(r.cashInt, 'pos'))}
+      ${td(10, nS(r.invBOY))}
+      ${td(11, nS(r.iGrowth, 'pos'))}
+      ${td(12, nS(r.exp, 'neg'))}
+      ${td(13, `<strong class="mono">${fm(nwEOY, '$0')}</strong>`)}
+      ${td(14, nS(r.sBOY))}
+      ${td(15, sContribDisplay)}
+      ${td(16, nS(r.sGrowth, 'pos'))}
+      ${td(17, sDrawDisplay)}
+      ${td(18, `<strong class="mono">${fm(r.sEOY, '$0')}</strong>`)}
     </tr>`;
   }).join('');
 
   document.getElementById('fTable').innerHTML = `<thead><tr>${grpRow}</tr><tr>${colRow}</tr></thead><tbody>${bodyRows}</tbody>`;
+  fixStickyHeaders();
 }
-
-document.querySelectorAll('input').forEach(el => el.addEventListener('input', recalc));
-recalc();
 </script>
 </body>
 </html>
