@@ -186,7 +186,7 @@
             <div class="hint">Earns cash return · spent first in retirement</div>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
-              <input type="text" id="i_cash" value="50,000" data-raw="50000">
+              <input type="text" id="i_cash" value="300,000" data-raw="300000">
             </div>
           </div>
           <div>
@@ -194,7 +194,7 @@
             <div class="hint">Spent after cash is exhausted</div>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
-              <input type="text" id="i_invest" value="150,000" data-raw="150000">
+              <input type="text" id="i_invest" value="650,000" data-raw="650000">
             </div>
           </div>
           <div>
@@ -202,7 +202,7 @@
             <div class="hint">Locked until preservation age · drawn last</div>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
-              <input type="text" id="i_super" value="100,000" data-raw="100000">
+              <input type="text" id="i_super" value="250,000" data-raw="250000">
             </div>
           </div>
         </div>
@@ -216,7 +216,7 @@
             <label>Gross salary excl. super</label>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
-              <input type="text" id="i_salary" value="120,000" data-raw="120000">
+              <input type="text" id="i_salary" value="200,000" data-raw="200000">
             </div>
             <div class="sg-output">
               <span class="sg-label">Employer Super Guarantee (12%)</span>
@@ -228,7 +228,7 @@
             <div class="hint">e.g. bonus · taxed as income · SG applies · adds to super</div>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
-              <input type="text" id="i_othemp" value="0" data-raw="0">
+              <input type="text" id="i_othemp" value="40,000" data-raw="40000">
             </div>
           </div>
           <div>
@@ -483,6 +483,12 @@ function simulate(inp) {
   let c = inp.c, inv = inp.inv, s = inp.s, e = inp.e;
   const rows = [];
   let fireAge = null, retired = false;
+
+  // Split surplus between cash and investments based on initial input ratio
+  const totalInit = inp.c + inp.inv;
+  const cRatio = totalInit > 0 ? inp.c / totalInit : 0;
+  const iRatio = totalInit > 0 ? inp.inv / totalInit : 1;
+
   for (let age = inp.age; age <= inp.death; age++) {
     const yr = Y0 + (age - inp.age), post = age >= inp.pres;
     if (!retired && canFIRE(age, c, inv, s, e, p)) { fireAge = age; retired = true; }
@@ -492,29 +498,39 @@ function simulate(inp) {
       const totalEmpInc = inp.salary + inp.otherEmpInc;
       const SG = totalEmpInc * getSG(yr), maxCC = 30000;
       const volCC = Math.min(inp.vs, Math.max(0, maxCC - SG));
-      // Taxable income = all employment income + other income - salary sacrifice
       const taxInc = totalEmpInc + inp.otherInc - volCC;
       const t = calcTax(taxInc), netInc = taxInc - t;
       const iGrowth = inv * p.ir, sGrowth = s * p.sr * 0.85;
       const sgNet = SG * 0.85, vcNet = volCC * 0.85;
       c += cashInt;
-      const cashFlow = netInc - e; let iDelta;
-      if (cashFlow >= 0) { iDelta = cashFlow; inv = inv + iGrowth + cashFlow; }
-      else { const def = -cashFlow, cD = Math.min(c, def); c -= cD; const iD = Math.min(inv + iGrowth, def - cD); inv = Math.max(0, inv + iGrowth - iD); iDelta = -iD; }
+      const cashFlow = netInc - e;
+      let cashSurplus = 0, invSurplus = 0;
+      if (cashFlow >= 0) {
+        // Split surplus proportionally across cash and investments
+        cashSurplus = cashFlow * cRatio;
+        invSurplus  = cashFlow * iRatio;
+        c   += cashSurplus;
+        inv  = inv + iGrowth + invSurplus;
+      } else {
+        // Deficit: draw cash first, then investments
+        const def = -cashFlow;
+        const cD = Math.min(c, def); c -= cD; cashSurplus = -cD;
+        const iD = Math.min(inv + iGrowth, def - cD); inv = Math.max(0, inv + iGrowth - iD); invSurplus = -iD;
+      }
       s += sgNet + vcNet + sGrowth;
-      Object.assign(row, { salary: totalEmpInc, t, netInc, cashInt, cashFlow, SG, volCC, sContrib: sgNet + vcNet, iGrowth, iDelta, sGrowth });
+      Object.assign(row, { salary: totalEmpInc, t, netInc, cashInt, cashFlow, cashSurplus, SG, volCC, sContrib: sgNet + vcNet, iGrowth, invSurplus, sGrowth });
     } else if (!post) {
       const iGrowth = inv * p.ir, sGrowth = s * p.sr * 0.85;
       c += cashInt;
       const cD = Math.min(c, e), iD = Math.min(inv + iGrowth, e - cD);
       c = Math.max(0, c - cD); inv = Math.max(0, inv + iGrowth - iD); s += sGrowth;
-      Object.assign(row, { salary: 0, t: 0, netInc: 0, cashInt, cashFlow: -e, SG: 0, volCC: 0, sContrib: 0, iGrowth, iDelta: -iD, sGrowth });
+      Object.assign(row, { salary: 0, t: 0, netInc: 0, cashInt, cashFlow: -e, cashSurplus: -cD, SG: 0, volCC: 0, sContrib: 0, iGrowth, invSurplus: -iD, sGrowth });
     } else {
       const sGrowth = s * p.sr, iGrowth = inv * p.ir;
       c += cashInt;
       const cD = Math.min(c, e), iD = Math.min(inv + iGrowth, e - cD), sD = Math.min(s + sGrowth, e - cD - iD);
       c = Math.max(0, c - cD); inv = Math.max(0, inv + iGrowth - iD); s = Math.max(0, s + sGrowth - sD);
-      Object.assign(row, { salary: 0, t: 0, netInc: 0, cashInt, cashFlow: -e, SG: 0, volCC: 0, sContrib: -sD, iGrowth, iDelta: -iD, sGrowth });
+      Object.assign(row, { salary: 0, t: 0, netInc: 0, cashInt, cashFlow: -e, cashSurplus: -cD, SG: 0, volCC: 0, sContrib: -sD, iGrowth, invSurplus: -iD, sGrowth });
     }
     row.cEOY = c; row.invEOY = inv; row.sEOY = s;
     row.nonSW = c + inv; row.totalNW = c + inv + s;
@@ -700,14 +716,32 @@ function recalc() {
   // ── SUMMARY CARDS ────────────────────────────────────────
   const sc = document.getElementById('sumCards');
   const peakNW = Math.max(...rows.map(r => r.totalNW));
-  const mk = (l, v, s) => `<div class="sum-card"><div class="sl">${l}</div><div class="sv">${v}</div>${s ? `<div class="ss">${s}</div>` : ''}</div>`;
+  const peakRow = rows.find(r => r.totalNW === peakNW);
+
+  // Deflate a nominal future value back to today's dollars
+  const toToday = (nominalVal, futureAge) => {
+    const yrs = futureAge - inp.age;
+    return nominalVal / Math.pow(1 + inp.inf, yrs);
+  };
+
+  const mk = (l, v, s, s2) => `<div class="sum-card">
+    <div class="sl">${l}</div>
+    <div class="sv">${v}</div>
+    ${s  ? `<div class="ss">${s}</div>`  : ''}
+    ${s2 ? `<div class="ss" style="color:var(--color-text-tertiary);margin-top:2px;">${s2}</div>` : ''}
+  </div>`;
+
   sc.innerHTML = [
-    mk('Non-super NW today', fm(inp.c + inp.inv), 'cash + investments'),
-    mk('Super today', fm(inp.s), 'accumulation'),
-    fr ? mk('Non-super at FIRE', fm(fr.nonSW), `age ${fireAge}`) : mk('Non-super at FIRE', '—', ''),
-    fr ? mk('Super at FIRE', fm(fr.sBOY), `locked until age ${inp.pres}`) : mk('Super at FIRE', '—', ''),
-    mk('Peak net worth', fm(peakNW), 'all years'),
-    mk('Estate at death', fm(lastRow.totalNW), `age ${inp.death}`),
+    mk('Non-super NW today',  fm(inp.c + inp.inv), 'cash + investments'),
+    mk('Super today',         fm(inp.s),            'accumulation'),
+    fr  ? mk('Non-super at FIRE', fm(fr.nonSW),       `age ${fireAge}`, `${fm(toToday(fr.nonSW, fireAge))} in today's $`)
+        : mk('Non-super at FIRE', '—', ''),
+    fr  ? mk('Super at FIRE',     fm(fr.sBOY),         `locked until age ${inp.pres}`, `${fm(toToday(fr.sBOY, fireAge))} in today's $`)
+        : mk('Super at FIRE', '—', ''),
+    peakRow
+        ? mk('Peak net worth',    fm(peakNW),           `age ${peakRow.age}`, `${fm(toToday(peakNW, peakRow.age))} in today's $`)
+        : mk('Peak net worth',    fm(peakNW),            'all years'),
+    mk('Estate at death',     fm(lastRow.totalNW),  `age ${inp.death}`, `${fm(toToday(lastRow.totalNW, inp.death))} in today's $`),
   ].join('');
 
   // ── CHART ────────────────────────────────────────────────
@@ -762,17 +796,17 @@ function recalc() {
   ).join('');
 
   // ── TABLE ────────────────────────────────────────────────
-  // Column groups — 19 columns total
-  // 3 + 1 + 4 + 2 + 2 + 1 + 1 + 5 = 19
+  // Column groups — 21 columns total
+  // 3 + 1 + 4 + 1 + 3 + 3 + 1 + 5 = 21
   const GRP = [
-    { label: '',                                        n: 3, align: 'left'   },
-    { label: 'Net Worth (ex. Super) SoY',              n: 1, align: 'center' },
-    { label: 'Income',                                 n: 4, align: 'center' },
-    { label: 'Cash',                                   n: 2, align: 'center' },
-    { label: 'Investments',                            n: 2, align: 'center' },
-    { label: 'Expenses',                               n: 1, align: 'center' },
-    { label: 'Net Worth (ex. Super) EoY',              n: 1, align: 'center' },
-    { label: 'Super',                                  n: 5, align: 'center' },
+    { label: '',                               n: 3, align: 'left'   },
+    { label: 'Net Worth (ex. Super) SoY',      n: 1, align: 'center' },
+    { label: 'Income',                         n: 4, align: 'center' },
+    { label: 'Expenses',                       n: 1, align: 'center' },
+    { label: 'Cash',                           n: 3, align: 'center' },
+    { label: 'Investments',                    n: 3, align: 'center' },
+    { label: 'Net Worth (ex. Super) EoY',      n: 1, align: 'center' },
+    { label: 'Super',                          n: 5, align: 'center' },
   ];
 
   const grpStyle = 'padding:4px 10px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);background:var(--color-bg-tertiary);border-bottom:0.5px solid var(--color-border);position:sticky;top:0;z-index:3;white-space:nowrap;';
@@ -780,52 +814,47 @@ function recalc() {
     `<th colspan="${g.n}" style="${grpStyle}text-align:${g.align};border-right:1px solid var(--color-border);">${g.label}</th>`
   ).join('');
 
-  // Column headers
+  // Column headers (21 total, 0-indexed)
+  // 0:Age 1:Year 2:Phase | 3:NW SoY | 4:Salary 5:Tax 6:NetInc 7:SG | 8:Expenses | 9:Cash 10:CashReturn 11:CashSurplus | 12:Invest 13:Growth 14:InvSurplus | 15:NW EoY | 16:SuperStart 17:Contrib 18:Growth 19:Draw 20:SuperEnd
   const COLS = [
-    // Identity (3)
-    { h: 'Age',             left: true  },
-    { h: 'Year',            left: true  },
-    { h: 'Phase',           left: true  },
-    // NW BOY (1)
-    { h: 'Net Worth',       left: false },
-    // Income (4)
-    { h: 'Salary',          left: false },
-    { h: 'Tax etc',         left: false },
-    { h: 'Net Income',      left: false },
-    { h: 'Employer SG',     left: false },
-    // Cash (2)
-    { h: 'Cash',            left: false },
-    { h: 'Cash Return',     left: false },
-    // Investments (2)
-    { h: 'Investments',     left: false },
-    { h: 'Growth',          left: false },
-    // Expenses (1)
-    { h: 'Expenses (CPI)',  left: false },
-    // NW EOY (1)
-    { h: 'Net Worth',       left: false },
-    // Super (5)
-    { h: 'Super (Start)',   left: false },
-    { h: 'Contributions',   left: false },
-    { h: 'Growth',          left: false },
-    { h: 'Draw',            left: false },
-    { h: 'Super (End)',     left: false },
+    { h: 'Age',            left: true  },
+    { h: 'Year',           left: true  },
+    { h: 'Phase',          left: true  },
+    { h: 'Net Worth',      left: false },
+    { h: 'Salary',         left: false },
+    { h: 'Tax etc',        left: false },
+    { h: 'Net Income',     left: false },
+    { h: 'Employer SG',    left: false },
+    { h: 'Expenses (CPI)', left: false },
+    { h: 'Cash',           left: false },
+    { h: 'Cash Return',    left: false },
+    { h: 'Surplus / Draw', left: false },
+    { h: 'Investments',    left: false },
+    { h: 'Growth',         left: false },
+    { h: 'Surplus / Draw', left: false },
+    { h: 'Net Worth',      left: false },
+    { h: 'Super (Start)',  left: false },
+    { h: 'Contributions',  left: false },
+    { h: 'Growth',         left: false },
+    { h: 'Draw',           left: false },
+    { h: 'Super (End)',    left: false },
   ];
 
-  // Section divider indices (right-border after these col indices, 0-based)
-  const dividers = new Set([2, 3, 7, 9, 11, 12, 13]);
+  // Right-border dividers after these column indices
+  const dividers = new Set([2, 3, 7, 8, 11, 14, 15]);
 
-  const thStyle = 'padding:6px 10px;font-weight:500;font-size:11px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-secondary);position:sticky;top:28px;z-index:2;background:var(--color-bg-secondary);white-space:nowrap;';
+  const thStyle = 'padding:6px 10px;font-weight:500;font-size:11px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-secondary);position:sticky;top:0;z-index:2;background:var(--color-bg-secondary);white-space:nowrap;';
   const colRow = COLS.map((c, i) =>
     `<th style="${thStyle}text-align:${c.left ? 'left' : 'right'};${dividers.has(i) ? 'border-right:1px solid var(--color-border);' : ''}">${c.h}</th>`
   ).join('');
 
-  const bodyRows = rows.map((r, i) => {
-    const lb    = r.isFire ? 'border-fire' : r.retired && !r.post ? 'border-bridge' : r.retired && r.post ? 'border-super' : 'border-none';
-    const pT    = r.age === inp.pres && fireAge && fireAge < inp.pres ? 'border-pres' : '';
-    const div   = (idx) => dividers.has(idx) ? 'border-right:1px solid var(--color-border);' : '';
-    const td    = (idx, content, extra = '') =>
-      `<td style="padding:5px 10px;text-align:right;${pT ? 'border-top:2px solid #185FA5;' : ''}${div(idx)}${extra}">${content}</td>`;
-    const tdL   = (idx, content) =>
+  const bodyRows = rows.map((r) => {
+    const lb  = r.isFire ? 'border-fire' : r.retired && !r.post ? 'border-bridge' : r.retired && r.post ? 'border-super' : 'border-none';
+    const pT  = r.age === inp.pres && fireAge && fireAge < inp.pres ? 'border-pres' : '';
+    const div = (idx) => dividers.has(idx) ? 'border-right:1px solid var(--color-border);' : '';
+    const td  = (idx, content) =>
+      `<td style="padding:5px 10px;text-align:right;${pT ? 'border-top:2px solid #185FA5;' : ''}${div(idx)}">${content}</td>`;
+    const tdL = (idx, content) =>
       `<td style="padding:5px 10px;text-align:left;${pT ? 'border-top:2px solid #185FA5;' : ''}${div(idx)}">${content}</td>`;
 
     const phCell = !r.retired
@@ -838,32 +867,33 @@ function recalc() {
           ? `<span class="phase-super">FIRE + Super</span>`
           : `<span class="phase-bridge">FIRE Pre-Super</span>`;
 
-    const nwBOY   = r.cBOY + r.invBOY;
-    const nwEOY   = r.cEOY + r.invEOY;
-    // Super: separate contributions (working only) from draws (post-pres retired only)
+    const nwBOY = r.cBOY + r.invBOY;
+    const nwEOY = r.cEOY + r.invEOY;
     const sContribDisplay = !r.retired ? nS(r.sContrib, 'pos') : dash();
     const sDrawDisplay    = (r.retired && r.post && r.sContrib < 0) ? nS(-r.sContrib, 'neg') : dash();
 
     return `<tr class="${r.isFire ? 'row-fire' : ''}">
       <td class="${lb} ${pT} mono" style="padding:5px 10px;text-align:right;font-weight:500;${pT ? 'border-top:2px solid #185FA5;' : ''}${div(0)}">${r.age}</td>
-      ${tdL(1, `<span class="mono dim">${r.yr}</span>`)}
-      ${tdL(2, phCell)}
-      ${td(3,  `<strong class="mono">${fm(nwBOY, '$0')}</strong>`)}
-      ${td(4,  r.retired ? dash() : nS(r.salary))}
-      ${td(5,  r.retired ? dash() : nS(r.t, 'neg'))}
-      ${td(6,  r.retired ? dash() : nS(r.netInc))}
-      ${td(7,  r.retired ? dash() : nS(r.SG, 'info-c'))}
-      ${td(8,  nS(r.cBOY))}
-      ${td(9,  nS(r.cashInt, 'pos'))}
-      ${td(10, nS(r.invBOY))}
-      ${td(11, nS(r.iGrowth, 'pos'))}
-      ${td(12, nS(r.exp, 'neg'))}
-      ${td(13, `<strong class="mono">${fm(nwEOY, '$0')}</strong>`)}
-      ${td(14, nS(r.sBOY))}
-      ${td(15, sContribDisplay)}
-      ${td(16, nS(r.sGrowth, 'pos'))}
-      ${td(17, sDrawDisplay)}
-      ${td(18, `<strong class="mono">${fm(r.sEOY, '$0')}</strong>`)}
+      ${tdL(1,  `<span class="mono dim">${r.yr}</span>`)}
+      ${tdL(2,  phCell)}
+      ${td(3,   `<strong class="mono">${fm(nwBOY, '$0')}</strong>`)}
+      ${td(4,   r.retired ? dash() : nS(r.salary))}
+      ${td(5,   r.retired ? dash() : nS(r.t, 'neg'))}
+      ${td(6,   r.retired ? dash() : nS(r.netInc))}
+      ${td(7,   r.retired ? dash() : nS(r.SG, 'info-c'))}
+      ${td(8,   nS(r.exp, 'neg'))}
+      ${td(9,   nS(r.cBOY))}
+      ${td(10,  nS(r.cashInt, 'pos'))}
+      ${td(11,  cS(r.cashSurplus))}
+      ${td(12,  nS(r.invBOY))}
+      ${td(13,  nS(r.iGrowth, 'pos'))}
+      ${td(14,  cS(r.invSurplus))}
+      ${td(15,  `<strong class="mono">${fm(nwEOY, '$0')}</strong>`)}
+      ${td(16,  nS(r.sBOY))}
+      ${td(17,  sContribDisplay)}
+      ${td(18,  nS(r.sGrowth, 'pos'))}
+      ${td(19,  sDrawDisplay)}
+      ${td(20,  `<strong class="mono">${fm(r.sEOY, '$0')}</strong>`)}
     </tr>`;
   }).join('');
 
