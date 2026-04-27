@@ -128,9 +128,9 @@
   .table-header h3 { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
   .table-header p { font-size: 12px; color: var(--color-text-secondary); }
   .table-scroll { overflow-x: auto; max-height: 640px; overflow-y: auto; }
-  table { border-collapse: collapse; white-space: nowrap; font-size: 12px; width: 100%; }
-  thead tr:first-child th { padding: 4px 10px; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .07em; color: var(--color-text-tertiary); background: var(--color-bg-tertiary); border-bottom: 0.5px solid var(--color-border); position: sticky; top: 0; z-index: 3; }
-  thead tr:nth-child(2) th { padding: 6px 10px; font-weight: 500; font-size: 11px; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-secondary); position: sticky; top: 0; z-index: 2; background: var(--color-bg-secondary); white-space: nowrap; }
+  table { border-collapse: separate; border-spacing: 0; white-space: nowrap; font-size: 12px; width: 100%; }
+  thead tr:first-child th { padding: 4px 10px; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .07em; color: var(--color-text-tertiary); background: var(--color-bg-tertiary); position: sticky; top: 0; z-index: 3; box-shadow: inset 0 -1px 0 var(--color-border); }
+  thead tr:nth-child(2) th { padding: 6px 10px; font-weight: 500; font-size: 11px; color: var(--color-text-secondary); position: sticky; top: 0; z-index: 2; background: var(--color-bg-secondary); white-space: nowrap; box-shadow: inset 0 -1px 0 var(--color-border-secondary); }
   tbody tr:hover { background: rgba(255,255,255,0.02); }
   tbody td { padding: 5px 10px; text-align: right; }
   .mono { font-family: var(--font-mono); }
@@ -220,7 +220,15 @@
             </div>
             <div class="sg-output">
               <span class="sg-label">Employer Super Guarantee (12%)</span>
-              <span class="sg-val" id="sg_display">$14,400 / yr</span>
+              <span class="sg-val" id="sg_display">$28,800 / yr</span>
+            </div>
+          </div>
+          <div>
+            <label>Salary growth (% p.a.)</label>
+            <div class="hint">Salary compounds at this rate each working year</div>
+            <div class="input-wrap has-suffix">
+              <input type="number" id="i_salg" value="1" min="0" max="20" step="0.5">
+              <span class="input-suffix">%</span>
             </div>
           </div>
           <div>
@@ -233,10 +241,14 @@
           </div>
           <div>
             <label>Salary sacrifice / extra super</label>
-            <div class="hint">Reduces taxable income · max $30K total concessional</div>
+            <div class="hint">Reduces taxable income · total concessional cap $30K (SG + sacrifice)</div>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
               <input type="text" id="i_vs" value="0" data-raw="0">
+            </div>
+            <div class="sg-output" id="cc_display_wrap">
+              <span class="sg-label" id="cc_label">Concessional cap room</span>
+              <span class="sg-val" id="cc_display">$6,000</span>
             </div>
           </div>
           <div>
@@ -372,25 +384,78 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateSGDisplay() {
-  const salary = getRaw('i_salary');
+  const salary   = getRaw('i_salary');
   const otherEmp = getRaw('i_othemp');
-  const sg = (salary + otherEmp) * 0.12;
-  document.getElementById('sg_display').textContent = '$' + Math.round(sg).toLocaleString('en-AU') + ' / yr';
+  const totalEmp = salary + otherEmp;
+  const sg       = totalEmp * 0.12;
+  const room     = Math.max(0, 30000 - sg);
+  const vs       = getRaw('i_vs');
+  const effective = Math.min(vs, room);
+  const sgExcess  = Math.max(0, sg - 30000);
+
+  const sgLabel   = document.getElementById('sg_display').previousElementSibling;
+  const sgDisplay = document.getElementById('sg_display');
+  const sgWrap    = sgDisplay.closest('.sg-output');
+
+  if (sgExcess > 0) {
+    // SG alone exceeds the cap — warn about ECC tax
+    sgDisplay.textContent = '$' + Math.round(sg).toLocaleString('en-AU') + ' / yr';
+    sgLabel.textContent   = 'Employer SG (12%) — ECC tax applies';
+    sgWrap.style.background  = 'rgba(224,85,85,0.08)';
+    sgWrap.style.borderColor = 'rgba(224,85,85,0.25)';
+    sgDisplay.style.color    = 'var(--color-danger)';
+  } else {
+    sgDisplay.textContent = '$' + Math.round(sg).toLocaleString('en-AU') + ' / yr';
+    sgLabel.textContent   = 'Employer Super Guarantee (12%)';
+    sgWrap.style.background  = '';
+    sgWrap.style.borderColor = '';
+    sgDisplay.style.color    = 'var(--color-info)';
+  }
+
+  const ccLabel   = document.getElementById('cc_label');
+  const ccDisplay = document.getElementById('cc_display');
+  const ccWrap    = document.getElementById('cc_display_wrap');
+
+  if (sgExcess > 0) {
+    // SG already over cap — any sacrifice also gets ECC treatment
+    ccLabel.textContent      = `SG exceeds $30K cap by $${Math.round(sgExcess).toLocaleString('en-AU')} — sacrifice also gets ECC tax`;
+    ccDisplay.textContent    = 'ECC on all';
+    ccWrap.style.background  = 'rgba(224,85,85,0.08)';
+    ccWrap.style.borderColor = 'rgba(224,85,85,0.25)';
+    ccDisplay.style.color    = 'var(--color-danger)';
+  } else if (vs > 0 && vs > room) {
+    // Sacrifice exceeds cap room — excess gets ECC treatment but still goes to super
+    const excessSacrifice = vs - room;
+    ccLabel.textContent      = `$${Math.round(excessSacrifice).toLocaleString('en-AU')} over cap — ECC tax applies on excess`;
+    ccDisplay.textContent    = `$${Math.round(room).toLocaleString('en-AU')} cap room`;
+    ccWrap.style.background  = 'rgba(201,138,26,0.08)';
+    ccWrap.style.borderColor = 'rgba(201,138,26,0.25)';
+    ccDisplay.style.color    = 'var(--color-warning)';
+  } else {
+    ccLabel.textContent      = `Cap room (after $${Math.round(sg).toLocaleString('en-AU')} SG)`;
+    ccDisplay.textContent    = '$' + Math.round(room).toLocaleString('en-AU');
+    ccWrap.style.background  = '';
+    ccWrap.style.borderColor = '';
+    ccDisplay.style.color    = 'var(--color-info)';
+  }
 }
 
 // ── TAX & SUPER ───────────────────────────────────────────
+// FY2024-25 brackets (Stage 3 tax cuts, effective 1 July 2024)
 function calcTax(inc) {
   let t = 0;
-  if (inc <= 18200) t = 0;
+  if (inc <= 18200)       t = 0;
   else if (inc <= 45000)  t = (inc - 18200) * 0.19;
-  else if (inc <= 120000) t = 5092 + (inc - 45000) * 0.325;
-  else if (inc <= 200000) t = 29467 + (inc - 120000) * 0.37;
-  else                    t = 51667 + (inc - 200000) * 0.45;
+  else if (inc <= 135000) t = 5092 + (inc - 45000) * 0.325;
+  else if (inc <= 190000) t = 34342 + (inc - 135000) * 0.37;
+  else                    t = 54692 + (inc - 190000) * 0.45;
+  // LITO — unchanged by Stage 3
   let lito = 0;
   if (inc <= 37500)      lito = 700;
   else if (inc <= 45000) lito = 700 - (inc - 37500) * 0.05;
   else if (inc <= 66667) lito = 325 - (inc - 45000) * 0.015;
   t = Math.max(0, t - lito);
+  // Medicare levy: 2% above low-income threshold (~$26,000)
   return Math.round(t + (inc > 26000 ? inc * 0.02 : 0));
 }
 function getSG(yr) { return yr >= 2025 ? 0.12 : 0.115; }
@@ -481,6 +546,7 @@ function findBrokeAge(retireAge, c, inv, s, exp, p) {
 function simulate(inp) {
   const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir };
   let c = inp.c, inv = inp.inv, s = inp.s, e = inp.e;
+  let salary = inp.salary; // grows each year
   const rows = [];
   let fireAge = null, retired = false;
 
@@ -495,30 +561,51 @@ function simulate(inp) {
     const row = { age, yr, cBOY: c, invBOY: inv, sBOY: s, exp: e, retired, post, isFire: retired && age === fireAge };
     const cashInt = c * p.cir;
     if (!retired) {
-      const totalEmpInc = inp.salary + inp.otherEmpInc;
-      const SG = totalEmpInc * getSG(yr), maxCC = 30000;
-      const volCC = Math.min(inp.vs, Math.max(0, maxCC - SG));
-      const taxInc = totalEmpInc + inp.otherInc - volCC;
-      const t = calcTax(taxInc), netInc = taxInc - t;
+      const totalEmpInc = salary + inp.otherEmpInc;
+      const SG = totalEmpInc * getSG(yr);
+      const maxCC = 30000;
+
+      // Full sacrifice reduces taxable income regardless of cap
+      // (excess is still pre-tax but gets ECC treatment from ATO separately)
+      const volCC = inp.vs;
+      const totalCC = SG + volCC;
+
+      // Total excess concessional contributions above $30K cap
+      // (from SG overage, sacrifice overage, or both combined)
+      const excessCC = Math.max(0, totalCC - maxCC);
+
+      // Taxable income: all employment + other income, minus full sacrifice
+      const taxIncBase = totalEmpInc + inp.otherInc - volCC;
+
+      // ECC tax: excess added to assessable income at marginal rate, less 15% offset
+      // This comes out of personal cash — the fund still receives all contributions
+      const tBase = calcTax(taxIncBase);
+      const eccExtraTax = excessCC > 0
+        ? Math.max(0, (calcTax(taxIncBase + excessCC) - tBase) - excessCC * 0.15)
+        : 0;
+      const t = tBase + eccExtraTax;
+      const netInc = taxIncBase - t;
+
+      // Super: fund receives totalCC and pays 15% contributions tax on all of it
       const iGrowth = inv * p.ir, sGrowth = s * p.sr * 0.85;
-      const sgNet = SG * 0.85, vcNet = volCC * 0.85;
+      const sContrib = totalCC * 0.85;
+
       c += cashInt;
       const cashFlow = netInc - e;
       let cashSurplus = 0, invSurplus = 0;
       if (cashFlow >= 0) {
-        // Split surplus proportionally across cash and investments
         cashSurplus = cashFlow * cRatio;
         invSurplus  = cashFlow * iRatio;
         c   += cashSurplus;
         inv  = inv + iGrowth + invSurplus;
       } else {
-        // Deficit: draw cash first, then investments
         const def = -cashFlow;
         const cD = Math.min(c, def); c -= cD; cashSurplus = -cD;
         const iD = Math.min(inv + iGrowth, def - cD); inv = Math.max(0, inv + iGrowth - iD); invSurplus = -iD;
       }
-      s += sgNet + vcNet + sGrowth;
-      Object.assign(row, { salary: totalEmpInc, t, netInc, cashInt, cashFlow, cashSurplus, SG, volCC, sContrib: sgNet + vcNet, iGrowth, invSurplus, sGrowth });
+      s += sContrib + sGrowth;
+      Object.assign(row, { salary: totalEmpInc, t, eccExtraTax, netInc, cashInt, cashFlow, cashSurplus, SG, excessCC, volCC, sContrib, iGrowth, invSurplus, sGrowth });
+      salary *= (1 + inp.salg);
     } else if (!post) {
       const iGrowth = inv * p.ir, sGrowth = s * p.sr * 0.85;
       c += cashInt;
@@ -554,14 +641,19 @@ function nS(n, cls = '') { return `<span class="mono ${cls}">${fm(n, '$0')}</spa
 function cS(n) { return nS(n, n < 0 ? 'neg' : n > 0 ? 'pos' : ''); }
 function dash() { return `<span class="dim">—</span>`; }
 
-// Measure first header row after render and pin second row exactly beneath it
+// Measure first header row after browser reflow and pin second row exactly beneath it
 function fixStickyHeaders() {
-  const table = document.getElementById('fTable');
-  const rows = table.querySelectorAll('thead tr');
-  if (rows.length >= 2) {
-    const h = rows[0].getBoundingClientRect().height;
-    rows[1].querySelectorAll('th').forEach(th => th.style.top = h + 'px');
-  }
+  requestAnimationFrame(() => {
+    const table = document.getElementById('fTable');
+    if (!table) return;
+    const theadRows = table.querySelectorAll('thead tr');
+    if (theadRows.length >= 2) {
+      const h = theadRows[0].getBoundingClientRect().height;
+      theadRows[1].querySelectorAll('th').forEach(th => {
+        th.style.top = Math.ceil(h) + 'px';
+      });
+    }
+  });
 }
 
 // ── RECALC ────────────────────────────────────────────────
@@ -569,7 +661,8 @@ function recalc() {
   const inp = {
     age: getRaw('i_age'), death: getRaw('i_death'), pres: getRaw('i_pres'),
     c: getRaw('i_cash'), inv: getRaw('i_invest'), s: getRaw('i_super'),
-    salary: getRaw('i_salary'), e: getRaw('i_exp'), vs: getRaw('i_vs'),
+    salary: getRaw('i_salary'), salg: getRaw('i_salg') / 100,
+    e: getRaw('i_exp'), vs: getRaw('i_vs'),
     otherEmpInc: getRaw('i_othemp'), otherInc: getRaw('i_othinc'),
     cir: getRaw('i_cir') / 100, ir: getRaw('i_ir') / 100,
     sr: getRaw('i_sr') / 100, inf: getRaw('i_inf') / 100
@@ -809,7 +902,7 @@ function recalc() {
     { label: 'Super',                          n: 5, align: 'center' },
   ];
 
-  const grpStyle = 'padding:4px 10px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);background:var(--color-bg-tertiary);border-bottom:0.5px solid var(--color-border);position:sticky;top:0;z-index:3;white-space:nowrap;';
+  const grpStyle = 'padding:4px 10px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);background:var(--color-bg-tertiary);position:sticky;top:0;z-index:3;white-space:nowrap;';
   const grpRow = GRP.map(g =>
     `<th colspan="${g.n}" style="${grpStyle}text-align:${g.align};border-right:1px solid var(--color-border);">${g.label}</th>`
   ).join('');
@@ -834,7 +927,7 @@ function recalc() {
     { h: 'Surplus / Draw', left: false },
     { h: 'Net Worth',      left: false },
     { h: 'Super (Start)',  left: false },
-    { h: 'Contributions',  left: false },
+    { h: 'Contrib (net)',  left: false },
     { h: 'Growth',         left: false },
     { h: 'Draw',           left: false },
     { h: 'Super (End)',    left: false },
@@ -843,7 +936,7 @@ function recalc() {
   // Right-border dividers after these column indices
   const dividers = new Set([2, 3, 7, 8, 11, 14, 15]);
 
-  const thStyle = 'padding:6px 10px;font-weight:500;font-size:11px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-secondary);position:sticky;top:0;z-index:2;background:var(--color-bg-secondary);white-space:nowrap;';
+  const thStyle = 'padding:6px 10px;font-weight:500;font-size:11px;color:var(--color-text-secondary);position:sticky;top:0;z-index:2;background:var(--color-bg-secondary);white-space:nowrap;';
   const colRow = COLS.map((c, i) =>
     `<th style="${thStyle}text-align:${c.left ? 'left' : 'right'};${dividers.has(i) ? 'border-right:1px solid var(--color-border);' : ''}">${c.h}</th>`
   ).join('');
