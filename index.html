@@ -66,20 +66,6 @@
   .has-prefix input[type="text"] { padding-left: 22px; }
   .has-suffix input[type="text"], .has-suffix input[type="number"] { padding-right: 30px; }
 
-  /* SG output pill */
-  .sg-output {
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    background: rgba(55,138,221,0.08);
-    border: 0.5px solid rgba(55,138,221,0.2);
-    border-radius: var(--radius-sm);
-  }
-  .sg-output .sg-label { font-size: 11px; color: var(--color-text-secondary); }
-  .sg-output .sg-val { font-size: 13px; font-weight: 500; color: var(--color-info); font-family: var(--font-mono); margin-left: auto; }
-
   button { background: var(--color-accent); color: #fff; border: none; border-radius: var(--radius-sm); padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
   button:hover { opacity: 0.85; }
   .toolbar { margin-top: 1rem; padding-top: 1rem; border-top: 0.5px solid var(--color-border); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -163,20 +149,20 @@
         <p class="section-title">Personal</p>
         <div class="field">
           <div>
-            <label>Date of birth</label>
+            <label>Date of Birth</label>
             <input type="date" id="i_dob" value="1989-08-17">
             <div class="age-tag" id="age_display">Age: 35 years, 0 months</div>
           </div>
           <div>
-            <label>Projected age of death</label>
+            <label>Projected Age of Death</label>
             <input type="number" id="i_death" value="100" min="60" max="120">
           </div>
           <div>
-            <label>Super preservation age</label>
+            <label>Super Preservation Age</label>
             <input type="number" id="i_pres" value="60" min="55" max="65">
           </div>
           <div>
-            <label>Annual living expenses</label>
+            <label>Annual Living Expenses</label>
             <div class="hint">Today's dollars — CPI-inflated each year</div>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
@@ -222,7 +208,7 @@
         <p class="section-title">Income</p>
         <div class="field">
           <div>
-            <label>Gross salary excl. super</label>
+            <label>Gross Salary (excl. Super)</label>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
               <input type="text" id="i_salary" value="210,000" data-raw="210000">
@@ -246,7 +232,7 @@
           </div>
 
           <!-- COMBINED SUPER / TAX PILL -->
-          <div id="super_pill" style="background:var(--color-bg-tertiary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-sm,6px);padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+          <div id="super_pill" style="background:var(--color-bg-tertiary);border:0.5px solid var(--color-border-secondary);border-radius:var(--radius-sm);padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
             <div style="display:flex;justify-content:space-between;align-items:baseline;">
               <span style="font-size:11px;color:var(--color-text-secondary);" id="sg_label_main">Employer SG (12%)</span>
               <span style="font-size:13px;font-weight:500;font-family:var(--font-mono);color:var(--color-info);" id="sg_display">$0</span>
@@ -265,7 +251,7 @@
             </div>
             <div style="border-top:0.5px solid var(--color-border);padding-top:5px;display:flex;justify-content:space-between;align-items:baseline;">
               <span style="font-size:11px;color:var(--color-text-secondary);" id="cc_label">Cap room</span>
-              <span style="font-size:12px;font-family:var(--font-mono);" id="cc_display" style="color:var(--color-info);">$0</span>
+              <span style="font-size:12px;font-family:var(--font-mono);" id="cc_display">$0</span>
             </div>
           </div>
 
@@ -276,6 +262,11 @@
               <span class="input-prefix">$</span>
               <input type="text" id="i_othinc" value="0" data-raw="0">
             </div>
+            <label id="i_othinc_cont_label" style="margin-top:6px;display:none;">Income continues after retirement?</label>
+            <select id="i_othinc_cont" style="display:none;">
+              <option value="yes">Continues after retirement</option>
+              <option value="no" selected>Stops at retirement</option>
+            </select>
           </div>
         </div>
       </div>
@@ -283,7 +274,7 @@
         <p class="section-title">Growth Rates</p>
         <div class="field">
           <div>
-            <label>Salary growth (% p.a.)</label>
+            <label>Salary Growth (% p.a.)</label>
             <div class="hint">Applies to gross salary only — not to Other Employment Income</div>
             <div class="input-wrap has-suffix">
               <input type="number" id="i_salg" value="1" min="0" max="20" step="0.5">
@@ -298,14 +289,14 @@
             </div>
           </div>
           <div>
-            <label>Investment return (% p.a.)</label>
+            <label>Investment Return (% p.a.)</label>
             <div class="input-wrap has-suffix">
               <input type="number" id="i_ir" value="7" min="0" max="20" step="0.5">
               <span class="input-suffix">%</span>
             </div>
           </div>
           <div>
-            <label>Super return (% p.a.)</label>
+            <label>Super Return (% p.a.)</label>
             <div class="hint">15% tax accumulation · 0% pension phase</div>
             <div class="input-wrap has-suffix">
               <input type="number" id="i_sr" value="7" min="0" max="20" step="0.5">
@@ -355,75 +346,79 @@
 
   <!-- ASSUMPTIONS -->
   <div class="card" style="margin-top:1.25rem;">
-    <p style="font-size:13px;font-weight:500;margin:0 0 1rem;color:var(--color-text-primary);">Assumptions &amp; methodology</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem 2rem;">
+    <p style="font-size:13px;font-weight:500;margin:0 0 1rem;color:var(--color-text);">Assumptions &amp; methodology</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem 2.5rem;">
 
-      <div>
-        <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Tax</p>
-        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
-          <li style="font-size:12px;color:var(--color-text-secondary);">FY2024-25 income tax brackets (Stage 3 cuts)</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Low Income Tax Offset (LITO) applied</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Medicare levy 2% on income above ~$26,000</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Salary sacrifice reduces taxable income before tax is calculated</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Excess concessional contributions taxed at marginal rate less 15% offset</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Division 293 tax: extra 15% on concessional contributions where income + contributions exceeds $250,000 — paid as personal ATO assessment, fund balance unaffected</li>
-        </ul>
+      <!-- LEFT-ISH: Tax + Super stacked -->
+      <div style="display:flex;flex-direction:column;gap:1.5rem;">
+        <div>
+          <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Tax</p>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
+            <li style="font-size:12px;color:var(--color-text-secondary);">FY2024-25 income tax brackets — fixed for the projection and will not reflect future legislative changes</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Low Income Tax Offset (LITO) applied</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Medicare levy: 2% on income above ~$26,000</li>
+          </ul>
+        </div>
+        <div>
+          <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Income</p>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
+            <li style="font-size:12px;color:var(--color-text-secondary);">Other Employment Income (e.g. bonus) attracts SG, is taxed as salary, and is held constant each year — salary growth rate does not apply to it</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Other Income (e.g. rental): taxed at marginal rate stacked on salary during working years, and at its own standalone marginal rate in retirement</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Other Income in retirement: toggle selects whether it continues or stops — if it continues, it is held constant in nominal terms and does not inflate with CPI</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Tax assessed annually; salary assumed paid monthly with surplus invested at end of each month</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Salary growth applied at end of each working year — base salary is earned at the prior year's rate throughout the year</li>
+          </ul>
+        </div>
+        <div>
+          <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Growth &amp; Compounding</p>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
+            <li style="font-size:12px;color:var(--color-text-secondary);">All growth rates compound monthly</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Inflation applied monthly — expenses grow continuously throughout the year</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">All ledger values in nominal (future) dollars — "Today's $" figures are deflated using your stated inflation rate</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Income surplus split between cash and investments at the initial Cash / Investment balance ratio, fixed for the entire projection</li>
+          </ul>
+        </div>
       </div>
 
+      <!-- MIDDLE: Super (long) -->
       <div>
         <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Superannuation</p>
         <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
-          <li style="font-size:12px;color:var(--color-text-secondary);">Employer SG: 12% from FY2025-26</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Concessional cap: $30,000 total (SG + salary sacrifice combined)</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">15% contributions tax on all concessional contributions</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">15% earnings tax in accumulation phase</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">0% earnings tax in pension phase (post preservation age)</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Super locked until preservation age - cannot be accessed early</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">Employer SG: 12% from FY2025-26 — fixed at 12% throughout the projection, will not reflect future legislative increases</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">Concessional cap: $30,000 total (SG + salary sacrifice combined) — assumed fixed, may increase with indexation</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">Salary sacrifice reduces taxable income before tax is calculated</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">Excess concessional contributions: amount above the $30K cap is assessed via your annual tax return at your marginal rate less a 15% tax offset (for tax already paid by the fund)</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">Division 293 tax: extra 15% on concessional contributions where income + contributions exceeds $250,000 — assessed as a personal ATO assessment, fund balance unaffected</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">15% contributions tax on all concessional contributions (withheld by the fund)</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">15% earnings tax in accumulation phase · 0% in pension phase — pension phase drawdowns are also tax-free for members under 75</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">Super cannot generally be accessed before preservation age — early access exists only in limited circumstances (e.g. severe financial hardship, terminal illness) which are not modelled</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">Only concessional contributions (SG and salary sacrifice) are modelled — non-concessional (after-tax) contributions are not</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">Transfer balance cap (currently $1.9M) which limits the amount that can be moved to pension phase is not modelled — at high super balances this may affect tax outcomes</li>
         </ul>
       </div>
 
-      <div>
-        <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Income</p>
-        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
-          <li style="font-size:12px;color:var(--color-text-secondary);">Other Employment Income attracts SG and is taxed as salary</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Other Income (e.g. rental) taxed at marginal rate - no SG</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Salary growth applies to gross salary only — Other Employment Income (e.g. bonus) is held constant each year</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Tax assessed annually; income distributed across pay periods</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Salary assumed paid monthly — surplus invested at end of each month</li>
-        </ul>
-      </div>
-
-      <div>
-        <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Growth &amp; Compounding</p>
-        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
-          <li style="font-size:12px;color:var(--color-text-secondary);">All growth rates compound monthly</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Inflation applied monthly - expenses grow continuously</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">All ledger values in nominal (future) dollars</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">"Today's $" figures deflated using your stated inflation rate</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Income surplus split between cash and investments at the starting balance ratio</li>
-        </ul>
-      </div>
-
-      <div>
-        <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Drawdown &amp; FIRE</p>
-        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
-          <li style="font-size:12px;color:var(--color-text-secondary);">Drawdown order: Cash then Investments then Super</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">FIRE date: first month assets sustain monthly drawdown through to death age</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">FIRE check uses same monthly simulation as the ledger - fully consistent</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Pre-super bridge: non-super assets must cover expenses until preservation age</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Estate at death is residual super - drawn last so it compounds the longest</li>
-        </ul>
-      </div>
-
-      <div>
-        <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Limitations</p>
-        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
-          <li style="font-size:12px;color:var(--color-text-secondary);">Assumes constant returns - does not model sequence-of-returns risk</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Does not model capital gains tax on investment disposals</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Does not model Age Pension eligibility or asset/income tests</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Concessional cap assumed fixed at $30K - may increase with indexation</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Not financial advice - consult a licensed financial adviser</li>
-        </ul>
+      <!-- RIGHT-ISH: Drawdown + Limitations stacked -->
+      <div style="display:flex;flex-direction:column;gap:1.5rem;">
+        <div>
+          <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Drawdown &amp; FIRE</p>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
+            <li style="font-size:12px;color:var(--color-text-secondary);">Drawdown order: Cash first, then Investments, then Super</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">FIRE date: the first month where assets can sustain all projected expenses through to your nominated death age</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Pre-super bridge: non-super assets must cover all expenses from retirement until preservation age — this is often the binding constraint for early retirees</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Estate at death represents the residual super balance — super is drawn last and therefore compounds the longest</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Retirement Readiness Analysis is a snapshot test using current assets only — it does not account for future salary growth that would be earned by continuing to work</li>
+          </ul>
+        </div>
+        <div>
+          <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Limitations</p>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
+            <li style="font-size:12px;color:var(--color-text-secondary);">Assumes constant investment returns — does not model sequence-of-returns risk</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Does not model capital gains tax on investment disposals</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Does not model Age Pension eligibility, assets tests, or income tests</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Does not model early super access (financial hardship, terminal illness, etc.)</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Not financial advice — consult a licensed financial adviser before making decisions</li>
+          </ul>
+        </div>
       </div>
 
     </div>
@@ -432,7 +427,7 @@
 </div>
 
 <script>
-const Y0 = 2026;
+const Y0 = new Date().getFullYear();
 let chart = null;
 
 // ── COMMA FORMATTING ──────────────────────────────────────
@@ -473,18 +468,23 @@ document.addEventListener('DOMContentLoaded', () => {
     initCurrencyInput(document.getElementById(id));
   });
   document.getElementById('i_dob').addEventListener('change', () => { updateAgeDisplay(); updateSGDisplay(); recalc(); });
+  document.getElementById('i_othinc').addEventListener('input', () => updateOtherIncToggle());
+  document.getElementById('i_othinc').addEventListener('blur',  () => updateOtherIncToggle());
+  document.getElementById('i_othinc_cont').addEventListener('change', () => recalc());
   document.querySelectorAll('input[type="number"]').forEach(el => el.addEventListener('input', () => { updateSGDisplay(); recalc(); }));
   updateAgeDisplay();
   updateSGDisplay();
+  updateOtherIncToggle();
   recalc();
 });
 
 // ── AGE FROM DOB ──────────────────────────────────────────
-const TODAY = new Date();
-
+// TODAY computed fresh inside getAgeInfo() on every call so
+// recalculating after midnight or a birthday reflects the correct age.
 function getAgeInfo() {
+  const TODAY = new Date();
   const dob = new Date(document.getElementById('i_dob').value);
-  if (isNaN(dob)) return { years: 35, months: 0, decimal: 35 };
+  if (isNaN(dob) || dob.getFullYear() < 1900) return null;  // invalid — caller shows error
   let years  = TODAY.getFullYear() - dob.getFullYear();
   let months = TODAY.getMonth() - dob.getMonth();
   if (TODAY.getDate() < dob.getDate()) months--;
@@ -494,15 +494,33 @@ function getAgeInfo() {
 }
 
 function updateAgeDisplay() {
-  const { years, months } = getAgeInfo();
-  document.getElementById('age_display').textContent =
-    `Age: ${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}`;
+  const info = getAgeInfo();
+  const el = document.getElementById('age_display');
+  if (!info) {
+    el.textContent = 'Please enter a valid date of birth';
+    el.style.color = 'var(--color-danger)';
+    return;
+  }
+  el.textContent = `Age: ${info.years} year${info.years !== 1 ? 's' : ''}, ${info.months} month${info.months !== 1 ? 's' : ''}`;
+  el.style.color = 'var(--color-info)';
 }
 
+// fm_k: compact formatter used ONLY in the SG/super pill display (e.g. "$1.2K").
+// The main ledger and all other outputs use fm() for consistent full-dollar display.
+// Do not use fm_k() in ledger rendering — it would reduce precision for small values.
 function fm_k(n) {
   // Compact formatter for pill display
   if (Math.abs(n) >= 1000) return '$' + (n/1000).toFixed(1).replace(/\.0$/,'') + 'K';
   return '$' + Math.round(n).toLocaleString('en-AU');
+}
+
+function updateOtherIncToggle() {
+  const v = getRaw('i_othinc');
+  const sel = document.getElementById('i_othinc_cont');
+  const lbl = document.getElementById('i_othinc_cont_label');
+  const show = v > 0;
+  sel.style.display = show ? '' : 'none';
+  lbl.style.display = show ? '' : 'none';
 }
 
 function updateSGDisplay() {
@@ -600,7 +618,7 @@ function updateSGDisplay() {
 }
 
 // ── TAX & SUPER ───────────────────────────────────────────
-// FY2024-25 brackets (Stage 3 tax cuts, effective 1 July 2024)
+// FY2024-25 income tax brackets (effective 1 July 2024)
 function calcTax(inc) {
   let t = 0;
   if (inc <= 18200)       t = 0;
@@ -608,7 +626,7 @@ function calcTax(inc) {
   else if (inc <= 135000) t = 5092 + (inc - 45000) * 0.325;
   else if (inc <= 190000) t = 34342 + (inc - 135000) * 0.37;
   else                    t = 54692 + (inc - 190000) * 0.45;
-  // LITO — unchanged by Stage 3
+  // LITO
   let lito = 0;
   if (inc <= 37500)      lito = 700;
   else if (inc <= 45000) lito = 700 - (inc - 37500) * 0.05;
@@ -627,6 +645,9 @@ function canFIRE(age, c, inv, s, exp, p) {
   const r_sacc = Math.pow(1 + p.sr * 0.85, 1/12) - 1;
   const r_spen = Math.pow(1 + p.sr,        1/12) - 1;
   const r_inf  = Math.pow(1 + p.inf,       1/12) - 1;
+  // Net other income in retirement (reduces effective drawdown)
+  const netOtherInc_m = (p.otherIncCont && p.otherInc > 0)
+    ? (p.otherInc - calcTax(p.otherInc)) / 12 : 0;
 
   let C = c, I = inv, S = s;
   let monthlyExp = exp / 12;
@@ -637,6 +658,7 @@ function canFIRE(age, c, inv, s, exp, p) {
       C += C * r_c;
       I += I * r_i;
       S += S * (post ? r_spen : r_sacc);
+      C += netOtherInc_m;  // retired other income flows to cash, reducing asset drawdown
       const exp_m = monthlyExp;
       if (!post) {
         const cD = Math.min(C, exp_m); C -= cD;
@@ -654,70 +676,118 @@ function canFIRE(age, c, inv, s, exp, p) {
   return true;
 }
 
-// ── READINESS ANALYSIS ────────────────────────────────────
+// ── READINESS ANALYSIS (monthly — matches canFIRE and simulate) ───────────
 function analyseRetirement(age, c, inv, s, exp, p) {
-  let C = c, I = inv, S = s, E = exp;
+  const r_c    = Math.pow(1 + p.cir,       1/12) - 1;
+  const r_i    = Math.pow(1 + p.ir,        1/12) - 1;
+  const r_sacc = Math.pow(1 + p.sr * 0.85, 1/12) - 1;
+  const r_spen = Math.pow(1 + p.sr,        1/12) - 1;
+  const r_inf  = Math.pow(1 + p.inf,       1/12) - 1;
+  const netOtherInc_m = (p.otherIncCont && p.otherInc > 0)
+    ? (p.otherInc - calcTax(p.otherInc)) / 12 : 0;
+
+  // ── Bridge check: cash → invest only, super untouched ──
+  let C = c, I = inv, S = s;
+  let monthlyExp = exp / 12;
   let bridgeOK = true, brokeAtBridge = null, superAtBrokeAge = null;
+  outer_bridge:
   for (let a = age; a < p.pres; a++) {
-    C += C * p.cir;
-    const ig = I * p.ir;
-    const cD = Math.min(C, E), iD = Math.min(I + ig, E - cD);
-    if (cD + iD < E) { bridgeOK = false; brokeAtBridge = a; superAtBrokeAge = S; break; }
-    C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S += S * p.sr * 0.85;
-    E *= (1 + p.inf);
+    for (let m = 0; m < 12; m++) {
+      C += C * r_c; I += I * r_i; S += S * r_sacc;
+      C += netOtherInc_m;
+      const cD = Math.min(C, monthlyExp); C -= cD;
+      const iD = Math.min(I, monthlyExp - cD); I = Math.max(0, I - iD);
+      if (cD + iD < monthlyExp - 0.01) {
+        bridgeOK = false; brokeAtBridge = a; superAtBrokeAge = S;
+        break outer_bridge;
+      }
+      monthlyExp *= (1 + r_inf);
+    }
   }
+
+  // ── Total check: cash → invest → super (post-pres) ──
   let totalOK = false, brokeAtTotal = null;
   if (bridgeOK) {
+    outer_total:
     for (let a = p.pres; a <= p.death; a++) {
-      C += C * p.cir;
-      const sg = S * p.sr, ig = I * p.ir;
-      const cD = Math.min(C, E), iD = Math.min(I + ig, E - cD), sD = Math.min(S + sg, E - cD - iD);
-      if (cD + iD + sD < E) { brokeAtTotal = a; break; }
-      C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S = Math.max(0, S + sg - sD);
-      E *= (1 + p.inf);
+      for (let m = 0; m < 12; m++) {
+        C += C * r_c; I += I * r_i; S += S * r_spen;
+        C += netOtherInc_m;
+        const cD = Math.min(C, monthlyExp); C -= cD;
+        const iD = Math.min(I, monthlyExp - cD); I = Math.max(0, I - iD);
+        const sD = Math.min(S, monthlyExp - cD - iD); S = Math.max(0, S - sD);
+        if (cD + iD + sD < monthlyExp - 0.01) { brokeAtTotal = a; break outer_total; }
+        monthlyExp *= (1 + r_inf);
+      }
     }
     totalOK = (brokeAtTotal === null);
   }
+
+  // ── Total-if-accessible: super drawable from day one ──
   let totalOKIfAccessible = false;
   if (!bridgeOK) {
-    let CA = c, IA = inv, SA = s, EA = exp, ok = true;
+    let CA = c, IA = inv, SA = s;
+    let mExp = exp / 12;
+    let ok = true;
+    outer_acc:
     for (let a = age; a <= p.death; a++) {
-      CA += CA * p.cir;
-      const sg = a >= p.pres ? SA * p.sr : SA * p.sr * 0.85;
-      const ig = IA * p.ir;
-      const cD = Math.min(CA, EA), iD = Math.min(IA + ig, EA - cD), sD = Math.min(SA + sg, EA - cD - iD);
-      if (cD + iD + sD < EA) { ok = false; break; }
-      CA = Math.max(0, CA - cD); IA = Math.max(0, IA + ig - iD); SA = Math.max(0, SA + sg - sD);
-      EA *= (1 + p.inf);
+      for (let m = 0; m < 12; m++) {
+        const post = (a + m / 12) >= p.pres;
+        CA += CA * r_c; IA += IA * r_i; SA += SA * (post ? r_spen : r_sacc);
+        CA += netOtherInc_m;
+        const cD = Math.min(CA, mExp); CA -= cD;
+        const iD = Math.min(IA, mExp - cD); IA = Math.max(0, IA - iD);
+        const sD = Math.min(SA, mExp - cD - iD); SA = Math.max(0, SA - sD);
+        if (cD + iD + sD < mExp - 0.01) { ok = false; break outer_acc; }
+        mExp *= (1 + r_inf);
+      }
     }
     totalOKIfAccessible = ok;
   }
+
   return { bridgeOK, brokeAtBridge, superAtBrokeAge, totalOK, brokeAtTotal, totalOKIfAccessible };
 }
 
 function findBrokeAge(retireAge, c, inv, s, exp, p) {
-  let C = c, I = inv, S = s, E = exp;
+  const r_c    = Math.pow(1 + p.cir,       1/12) - 1;
+  const r_i    = Math.pow(1 + p.ir,        1/12) - 1;
+  const r_sacc = Math.pow(1 + p.sr * 0.85, 1/12) - 1;
+  const r_spen = Math.pow(1 + p.sr,        1/12) - 1;
+  const r_inf  = Math.pow(1 + p.inf,       1/12) - 1;
+
+  const netOtherInc_m_fb = (p.otherIncCont && p.otherInc > 0)
+    ? (p.otherInc - calcTax(p.otherInc)) / 12 : 0;
+
+  let C = c, I = inv, S = s;
+  let monthlyExp = exp / 12;
+
   for (let a = retireAge; a <= p.death + 1; a++) {
-    C += C * p.cir;
-    if (a < p.pres) {
-      const ig = I * p.ir;
-      const cD = Math.min(C, E), iD = Math.min(I + ig, E - cD);
-      if (cD + iD < E) return { brokeAge: a, shortfall: E - cD - iD, beforePres: true, superBalance: S, yearsToSuper: p.pres - a };
-      C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S += S * p.sr * 0.85;
-    } else {
-      const sg = S * p.sr, ig = I * p.ir;
-      const cD = Math.min(C, E), iD = Math.min(I + ig, E - cD), sD = Math.min(S + sg, E - cD - iD);
-      if (cD + iD + sD < E) return { brokeAge: a, shortfall: E - cD - iD - sD, beforePres: false, superBalance: 0 };
-      C = Math.max(0, C - cD); I = Math.max(0, I + ig - iD); S = Math.max(0, S + sg - sD);
+    for (let m = 0; m < 12; m++) {
+      const post = a >= p.pres;
+      C += C * r_c; I += I * r_i; S += S * (post ? r_spen : r_sacc);
+      C += netOtherInc_m_fb;
+      const cD = Math.min(C, monthlyExp); C -= cD;
+      const iD = Math.min(I, monthlyExp - cD); I = Math.max(0, I - iD);
+      if (!post) {
+        if (cD + iD < monthlyExp - 0.01)
+          return { brokeAge: a, shortfall: (monthlyExp - cD - iD) * 12,
+                   beforePres: true, superBalance: S, yearsToSuper: p.pres - a };
+      } else {
+        const sD = Math.min(S, monthlyExp - cD - iD); S = Math.max(0, S - sD);
+        if (cD + iD + sD < monthlyExp - 0.01)
+          return { brokeAge: a, shortfall: (monthlyExp - cD - iD - sD) * 12,
+                   beforePres: false, superBalance: 0 };
+      }
+      monthlyExp *= (1 + r_inf);
     }
-    E *= (1 + p.inf);
   }
   return null;
 }
 
 // ── SIMULATE (monthly loop) ──────────────────────────────
 function simulate(inp) {
-  const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir };
+  const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir,
+              otherInc: inp.otherInc, otherIncCont: inp.otherIncCont };
 
   // Monthly compounding rates
   const r_c    = Math.pow(1 + inp.cir,       1/12) - 1;
@@ -736,10 +806,16 @@ function simulate(inp) {
   let monthlyExp = inp.e / 12;
   let retired = false, fireAge = null, fireResult = null;
   const rows = [];
-  const startAge = getAgeInfo().years;
+  const startAge = inp.age;  // use inp.age (already validated by recalc) not getAgeInfo() here
+
+  // Pre-compute retirement other income (tax assessed on other income only when retired)
+  const retiredOtherTaxAnnual    = (inp.otherIncCont && inp.otherInc > 0) ? calcTax(inp.otherInc) : 0;
+  const retiredOtherGrossMonthly = inp.otherInc / 12;
+  const retiredOtherTaxMonthly   = retiredOtherTaxAnnual / 12;
+  const retiredOtherNetMonthly   = retiredOtherGrossMonthly - retiredOtherTaxMonthly;
 
   for (let age = startAge; age <= inp.death; age++) {
-    const yr = Y0 + (age - startAge);
+    const yr = inp.dobYear + age;  // year the person turns this age (accurate regardless of birth month)
     const cBOY = c, invBOY = inv, sBOY = s;
     const expBOY = monthlyExp * 12;
 
@@ -836,6 +912,13 @@ function simulate(inp) {
         const iGrowth_m = inv * r_i;
         const sGrowth_m = s * r_sacc;
         c += cashInt_m; inv += iGrowth_m; s += sGrowth_m;
+        // Add net other income to cash if it continues in retirement
+        if (inp.otherIncCont && inp.otherInc > 0) {
+          c += retiredOtherNetMonthly;
+          ann.otherInc += retiredOtherGrossMonthly;
+          ann.t        += retiredOtherTaxMonthly;
+          ann.netInc   += retiredOtherNetMonthly;
+        }
         const cD = Math.min(c, exp_m); c -= cD;
         const iD = Math.min(inv, exp_m - cD); inv = Math.max(0, inv - iD);
         ann.cashInt    += cashInt_m;
@@ -850,6 +933,13 @@ function simulate(inp) {
         const iGrowth_m = inv * r_i;
         const sGrowth_m = s * r_spen;
         c += cashInt_m; inv += iGrowth_m; s += sGrowth_m;
+        // Add net other income to cash if it continues in retirement
+        if (inp.otherIncCont && inp.otherInc > 0) {
+          c += retiredOtherNetMonthly;
+          ann.otherInc += retiredOtherGrossMonthly;
+          ann.t        += retiredOtherTaxMonthly;
+          ann.netInc   += retiredOtherNetMonthly;
+        }
         const cD = Math.min(c, exp_m); c -= cD;
         const iD = Math.min(inv, exp_m - cD); inv = Math.max(0, inv - iD);
         const sD = Math.min(s, exp_m - cD - iD); s = Math.max(0, s - sD);
@@ -887,9 +977,9 @@ function fm(n, z = '—') {
   if (n === undefined || n === null) return z;
   if (Math.round(Math.abs(n)) < 1) return '$0';
   const a = Math.abs(n), sg = n < 0 ? '-' : '';
-  if (a >= 1e6) return sg + '$' + (a / 1e6).toFixed(2) + 'M';
-  if (a >= 10000) return sg + '$' + Math.round(a / 1000).toLocaleString('en-AU') + 'K';
-  if (a >= 1000) return sg + '$' + (a / 1000).toFixed(1) + 'K';
+  if (a >= 1e6)    return sg + '$' + (a / 1e6).toFixed(2) + 'M';
+  if (a >= 100000) return sg + '$' + Math.round(a / 1000).toLocaleString('en-AU') + 'K';
+  if (a >= 10000)  return sg + '$' + (a / 1000).toFixed(1) + 'K';
   return sg + '$' + Math.round(a).toLocaleString('en-AU');
 }
 function nS(n, cls = '') { return `<span class="mono ${cls}">${fm(n, '$0')}</span>`; }
@@ -914,24 +1004,58 @@ function fixStickyHeaders() {
 // ── RECALC ────────────────────────────────────────────────
 function recalc() {
   const ageInfo = getAgeInfo();
+  const fe = document.getElementById('fireResult');
+
+  // ── Validate DOB ─────────────────────────────────────────
+  if (!ageInfo) {
+    fe.innerHTML = `<div class="banner banner-danger" style="text-align:center;margin-bottom:1rem;">
+      <p style="font-size:18px;font-weight:500;color:var(--color-danger);margin-bottom:6px;">Invalid date of birth</p>
+      <p style="font-size:13px;color:var(--color-text-secondary);">Please enter a valid date of birth to continue.</p>
+    </div>`;
+    document.getElementById('cliffNote').innerHTML = '';
+    document.getElementById('readinessCard').innerHTML = '';
+    document.getElementById('sumCards').innerHTML = '';
+    return;
+  }
+
+  const dobYear = new Date(document.getElementById('i_dob').value).getFullYear();
   const inp = {
     age: ageInfo.years, death: getRaw('i_death'), pres: getRaw('i_pres'),
     c: getRaw('i_cash'), inv: getRaw('i_invest'), s: getRaw('i_super'),
     salary: getRaw('i_salary'), salg: getRaw('i_salg') / 100,
     e: getRaw('i_exp'), vs: getRaw('i_vs'),
+    dobYear,
     otherEmpInc: getRaw('i_othemp'), otherInc: getRaw('i_othinc'),
+    otherIncCont: document.getElementById('i_othinc_cont').value === 'yes',
     cir: getRaw('i_cir') / 100, ir: getRaw('i_ir') / 100,
     sr: getRaw('i_sr') / 100, inf: getRaw('i_inf') / 100,
   };
-  if (inp.death <= inp.age) return;
-  const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir };
+  // ── Validate death age ───────────────────────────────────
+  if (inp.death <= inp.age) {
+    fe.innerHTML = `<div class="banner banner-danger" style="text-align:center;margin-bottom:1rem;">
+      <p style="font-size:18px;font-weight:500;color:var(--color-danger);margin-bottom:6px;">Projected age of death must be greater than your current age</p>
+      <p style="font-size:13px;color:var(--color-text-secondary);">Current age: ${ageInfo.years}. Please increase the projected age of death.</p>
+    </div>`;
+    document.getElementById('cliffNote').innerHTML = '';
+    document.getElementById('readinessCard').innerHTML = '';
+    document.getElementById('sumCards').innerHTML = '';
+    return;
+  }
+  const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir,
+              otherInc: inp.otherInc, otherIncCont: inp.otherIncCont };
   const { rows, fireAge, fireResult } = simulate(inp);
   const lastRow = rows[rows.length - 1];
   const fr = rows.find(r => r.isFire);
-  const impliedSWR = fr ? (fr.exp / fr.totalNW * 100) : null;
+  // SWR: effective drawdown = expenses minus net other income (if continuing)
+  const netOtherAnnual = (inp.otherIncCont && inp.otherInc > 0)
+    ? (inp.otherInc - calcTax(inp.otherInc)) : 0;
+  const impliedSWR = (fr && fr.fireSnapshot)
+    ? (Math.max(0, fr.fireSnapshot.expAnnual - netOtherAnnual) /
+       (fr.fireSnapshot.c + fr.fireSnapshot.inv + fr.fireSnapshot.s) * 100)
+    : null;
 
   // ── FIRE RESULT ──────────────────────────────────────────
-  const fe = document.getElementById('fireResult');
+
   if (!fireAge) {
     fe.innerHTML = `<div class="banner banner-danger" style="text-align:center;margin-bottom:1rem;">
       <p style="font-size:18px;font-weight:500;color:var(--color-danger);margin-bottom:6px;">FIRE not achievable by age ${inp.death}</p>
@@ -971,7 +1095,7 @@ function recalc() {
       <div class="banner-row">
         <div>
           <div class="banner-label banner-label-success">FIRE date</div>
-          <div class="fire-age">Age ${fireAgeYears}y ${fireAgeMths}m &nbsp;·&nbsp; ${fireCalendar}</div>
+          <div class="fire-age">Age ${fireAgeYears}y${fireAgeMths > 0 ? ` ${fireAgeMths}m` : ''} &nbsp;·&nbsp; ${fireCalendar}</div>
           <div class="fire-sub">${fromNowStr}</div>
           ${fr && fr.fireSnapshot ? `<div class="fire-detail">At FIRE: <strong>${fm(fr.fireSnapshot.c + fr.fireSnapshot.inv)}</strong> non-super &nbsp;+&nbsp; <strong>${fm(fr.fireSnapshot.s)}</strong> super locked until age ${inp.pres}</div>` : ''}
           ${impliedSWR !== null ? `<div class="fire-detail">Implied SWR: <strong>${impliedSWR.toFixed(2)}%</strong> &nbsp;·&nbsp; Estate at death: <strong>${fm(lastRow.totalNW)}</strong></div>` : ''}
@@ -1001,9 +1125,15 @@ function recalc() {
     if (prevRow) {
       const broke = findBrokeAge(earlyAge, prevRow.cBOY, prevRow.invBOY, prevRow.sBOY, prevRow.exp, p);
       if (broke) {
-        const earlyYear = Y0 + (earlyAge - inp.age);
+        const earlyYear = inp.dobYear + earlyAge;  // year they turn earlyAge
         const detail = broke.beforePres
-          ? `Cash &amp; investments run out at age <strong>${broke.brokeAge}</strong> — still <strong>${inp.pres - broke.brokeAge}yr${inp.pres - broke.brokeAge === 1 ? '' : 's'} before super</strong> is accessible. Super is at <strong>${fm(broke.superBalance)}</strong> but legally locked. Shortfall: <strong>${fm(broke.shortfall)}/yr</strong>.`
+          ? (() => {
+            const gapYrs = inp.pres - broke.brokeAge;
+            const gapStr = gapYrs <= 0
+              ? 'Super becomes accessible this same year'
+              : gapYrs === 1 ? '1 year before super' : `${gapYrs} years before super`;
+            return `Cash &amp; investments run out at age <strong>${broke.brokeAge}</strong> — still <strong>${gapStr}</strong> is accessible. Super is at <strong>${fm(broke.superBalance)}</strong> but legally locked. Shortfall: <strong>${fm(broke.shortfall)}/yr</strong>.`;
+          })()
           : `All assets including super run out at age <strong>${broke.brokeAge}</strong> — ${inp.death - broke.brokeAge} years short of death age. Shortfall: <strong>${fm(broke.shortfall)}/yr</strong>.`;
         cn.innerHTML = `<div class="banner banner-warning" style="margin-bottom:1rem;">
           <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap;">
@@ -1014,7 +1144,11 @@ function recalc() {
             <div style="text-align:center;min-width:80px;">
               <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:3px;">Broke at</div>
               <div style="font-size:22px;font-weight:500;color:var(--color-danger);">Age ${broke.brokeAge}</div>
-              ${broke.beforePres ? `<div style="font-size:11px;color:var(--color-warning);margin-top:3px;">${inp.pres - broke.brokeAge}yr gap to super</div>` : ''}
+              ${broke.beforePres && (inp.pres - broke.brokeAge) > 0
+                ? `<div style="font-size:11px;color:var(--color-warning);margin-top:3px;">${inp.pres - broke.brokeAge} year${inp.pres - broke.brokeAge === 1 ? '' : 's'} to super</div>`
+                : broke.beforePres
+                  ? `<div style="font-size:11px;color:var(--color-success);margin-top:3px;">Super accessible this year</div>`
+                  : ''}
             </div>
           </div>
         </div>`;
@@ -1102,7 +1236,7 @@ function recalc() {
     mk('Non-super NW today',  fm(inp.c + inp.inv), 'cash + investments'),
     mk('Super today',         fm(inp.s),            'accumulation'),
     fr && fr.fireSnapshot
-        ? mk('Non-super at FIRE', fm(fr.fireSnapshot.c + fr.fireSnapshot.inv), `age ${fireAge}y ${fr.fireSnapshot.month}m`, `${fm(toToday(fr.fireSnapshot.c + fr.fireSnapshot.inv, fireAge + fr.fireSnapshot.month/12))} in today's $`)
+        ? mk('Non-super at FIRE', fm(fr.fireSnapshot.c + fr.fireSnapshot.inv), `age ${fireAge}y${fr.fireSnapshot.month > 0 ? ` ${fr.fireSnapshot.month}m` : ''}`, `${fm(toToday(fr.fireSnapshot.c + fr.fireSnapshot.inv, fireAge + fr.fireSnapshot.month/12))} in today's $`)
         : mk('Non-super at FIRE', '—', ''),
     fr && fr.fireSnapshot
         ? mk('Super at FIRE', fm(fr.fireSnapshot.s), `locked until age ${inp.pres}`, `${fm(toToday(fr.fireSnapshot.s, fireAge + fr.fireSnapshot.month/12))} in today's $`)
@@ -1146,7 +1280,7 @@ function recalc() {
       responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { title: i => `Age ${i[0].label} (${Y0 + (+i[0].label - inp.age)})`, label: i => `${i.dataset.label}: ${fm(i.raw)}` } }
+        tooltip: { callbacks: { title: i => `Age ${i[0].label} (${inp.dobYear + (+i[0].label)})`, label: i => `${i.dataset.label}: ${fm(i.raw)}` } }
       },
       scales: {
         x: { title: { display: true, text: 'Age', font: { size: 11 } }, ticks: { font: { size: 11 }, maxTicksLimit: 18 }, grid: { color: '#2a2a2a' } },
@@ -1165,8 +1299,7 @@ function recalc() {
   ).join('');
 
   // ── TABLE ────────────────────────────────────────────────
-  // Column groups — 21 columns total
-  // 3 + 1 + 4 + 1 + 3 + 3 + 1 + 5 = 21
+  // Column groups — 26 columns total: 3+1+6+1+4+4+1+6 = 26
   const GRP = [
     { label: '',                               n: 3, align: 'left'   },
     { label: 'Net Worth (ex. Super) SoY',      n: 1, align: 'center' },
@@ -1183,19 +1316,19 @@ function recalc() {
     `<th colspan="${g.n}" style="${grpStyle}text-align:${g.align};border-right:1px solid var(--color-border);">${g.label}</th>`
   ).join('');
 
-  // Column headers (21 total, 0-indexed)
-  // 0:Age 1:Year 2:Phase | 3:NW SoY | 4:Salary 5:Tax 6:NetInc 7:SG | 8:Expenses | 9:Cash 10:CashReturn 11:CashSurplus | 12:Invest 13:Growth 14:InvSurplus | 15:NW EoY | 16:SuperStart 17:Contrib 18:Growth 19:Draw 20:SuperEnd
+  // Column headers (26 total, 0-indexed)
+  // 0:Age 1:Year 2:Phase | 3:NW SoY | 4:Salary 5:OtherInc 6:Sacrifice 7:Tax 8:NetInc 9:SG | 10:Expenses | 11:Cash 12:CashRet 13:CashSurplus 14:CashEoY | 15:Invest 16:Growth 17:InvSurplus 18:InvEoY | 19:NW EoY | 20:SuperStart 21:SG 22:Sacrifice 23:Growth 24:Draw 25:SuperEnd
   const COLS = [
     { h: 'Age',            left: true  },
     { h: 'Year',           left: true  },
     { h: 'Phase',          left: true  },
     { h: 'Net Worth',      left: false },
     { h: 'Salary',         left: false },
+    { h: 'Other Income',   left: false },
     { h: 'Sacrifice',      left: false },
     { h: 'Tax etc',        left: false },
     { h: 'Net Income',     left: false },
     { h: 'Employer SG',    left: false },
-    { h: 'Other Income',   left: false },
     { h: 'Expenses (CPI)', left: false },
     { h: 'Cash (SoY)',     left: false },
     { h: 'Cash Return',    left: false },
@@ -1252,12 +1385,12 @@ function recalc() {
       ${tdL(1,  `<span class="mono dim">${r.yr}</span>`)}
       ${tdL(2,  phCell)}
       ${td(3,   `<strong class="mono">${fm(nwBOY, '$0')}</strong>`)}
-      ${td(4,   r.retired && !r.isFire ? dash() : nS(r.salary))}
-      ${td(5,   r.sacrifice > 0 ? nS(r.sacrifice, 'neg') : dash())}
-      ${td(6,   r.retired && !r.isFire ? dash() : nS(r.t, 'neg'))}
-      ${td(7,   r.retired && !r.isFire ? dash() : nS(r.netInc))}
-      ${td(8,   r.retired && !r.isFire ? dash() : nS(r.SG, 'info-c'))}
-      ${td(9,   r.otherInc > 0 ? nS(r.otherInc) : dash())}
+      ${td(4,   r.salary    > 0.01 ? nS(r.salary)            : dash())}
+      ${td(5,   r.otherInc > 0.01 ? nS(r.otherInc)          : dash())}
+      ${td(6,   r.sacrifice > 0.01 ? nS(r.sacrifice, 'neg')  : dash())}
+      ${td(7,   r.t        > 0.01 ? nS(r.t, 'neg')           : dash())}
+      ${td(8,   r.netInc   > 0.01 ? nS(r.netInc)             : dash())}
+      ${td(9,   r.SG       > 0.01 ? nS(r.SG, 'info-c')       : dash())}
       ${td(10,  nS(r.exp, 'neg'))}
       ${td(11,  nS(r.cBOY))}
       ${td(12,  nS(r.cashInt, 'pos'))}
@@ -1284,10 +1417,9 @@ function recalc() {
       const dob = new Date(document.getElementById('i_dob').value);
       const snapDate = new Date(dob.getFullYear() + r.age, dob.getMonth() + snap.month, 1);
       const snapDateStr = snapDate.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
-      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       insetRow = `<tr style="background:rgba(61,158,64,0.16);">
         <td colspan="26" style="padding:7px 16px 7px 20px;border-left:3px solid #3B6D11;text-align:left;">
-          <span style="font-size:11px;font-weight:600;color:#5bbf5e;">🔥 FIRE achieved — ${snapDateStr} &nbsp;·&nbsp; Age ${r.age}y ${snap.month}m</span>
+          <span style="font-size:11px;font-weight:600;color:#5bbf5e;">🔥 FIRE achieved — ${snapDateStr} &nbsp;·&nbsp; Age ${r.age}y${snap.month > 0 ? ` ${snap.month}m` : ''}</span>
           <span style="font-size:11px;color:var(--color-text-secondary);margin-left:18px;">Non-super: <strong style="font-weight:500;font-family:var(--font-mono);">${fm(nonSuperSnap)}</strong></span>
           <span style="font-size:11px;color:var(--color-text-secondary);margin-left:14px;">Super${r.age < inp.pres ? ' (locked)' : ''}: <strong style="font-weight:500;font-family:var(--font-mono);">${fm(snap.s)}</strong></span>
           <span style="font-size:11px;color:var(--color-text-secondary);margin-left:14px;">Total: <strong style="font-weight:500;font-family:var(--font-mono);">${fm(nonSuperSnap + snap.s)}</strong></span>
