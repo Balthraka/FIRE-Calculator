@@ -777,7 +777,7 @@ function simulate(inp) {
     }
 
     const ann = {
-      salary: 0, sacrifice: 0, t: 0, netInc: 0, SG: 0,
+      salary: 0, sacrifice: 0, t: 0, netInc: 0, SG: 0, otherInc: 0,
       cashInt: 0, cashSurplus: 0,
       iGrowth: 0, invSurplus: 0,
       sSG: 0, sVol: 0, sWork: 0, sDraw: 0, sGrowth: 0, exp: 0
@@ -817,6 +817,7 @@ function simulate(inp) {
         }
         ann.salary    += totalEmpInc / 12;
         ann.sacrifice += inp.vs / 12;
+        ann.otherInc  += inp.otherInc / 12;
         ann.t         += t_annual / 12;
         ann.netInc    += netInc_annual / 12;
         ann.SG        += SG_m;
@@ -1169,10 +1170,10 @@ function recalc() {
   const GRP = [
     { label: '',                               n: 3, align: 'left'   },
     { label: 'Net Worth (ex. Super) SoY',      n: 1, align: 'center' },
-    { label: 'Income',                         n: 5, align: 'center' },
+    { label: 'Income',                         n: 6, align: 'center' },
     { label: 'Expenses',                       n: 1, align: 'center' },
-    { label: 'Cash',                           n: 3, align: 'center' },
-    { label: 'Investments',                    n: 3, align: 'center' },
+    { label: 'Cash',                           n: 4, align: 'center' },
+    { label: 'Investments',                    n: 4, align: 'center' },
     { label: 'Net Worth (ex. Super) EoY',      n: 1, align: 'center' },
     { label: 'Super',                          n: 6, align: 'center' },
   ];
@@ -1194,13 +1195,16 @@ function recalc() {
     { h: 'Tax etc',        left: false },
     { h: 'Net Income',     left: false },
     { h: 'Employer SG',    left: false },
+    { h: 'Other Income',   left: false },
     { h: 'Expenses (CPI)', left: false },
-    { h: 'Cash',           left: false },
+    { h: 'Cash (SoY)',     left: false },
     { h: 'Cash Return',    left: false },
     { h: 'Surplus / Draw', left: false },
-    { h: 'Investments',    left: false },
+    { h: 'Cash (EoY)',     left: false },
+    { h: 'Invest (SoY)',   left: false },
     { h: 'Growth',         left: false },
     { h: 'Surplus / Draw', left: false },
+    { h: 'Invest (EoY)',   left: false },
     { h: 'Net Worth',      left: false },
     { h: 'Super (Start)',  left: false },
     { h: 'Employer SG',   left: false },
@@ -1211,7 +1215,7 @@ function recalc() {
   ];
 
   // Right-border dividers after these column indices
-  const dividers = new Set([2, 3, 8, 9, 12, 15, 16]);
+  const dividers = new Set([2, 3, 9, 10, 14, 18, 19]);
 
   const thStyle = 'padding:6px 10px;font-weight:500;font-size:11px;color:var(--color-text-secondary);position:sticky;top:0;z-index:2;background:var(--color-bg-secondary);white-space:nowrap;';
   const colRow = COLS.map((c, i) =>
@@ -1253,20 +1257,23 @@ function recalc() {
       ${td(6,   r.retired && !r.isFire ? dash() : nS(r.t, 'neg'))}
       ${td(7,   r.retired && !r.isFire ? dash() : nS(r.netInc))}
       ${td(8,   r.retired && !r.isFire ? dash() : nS(r.SG, 'info-c'))}
-      ${td(9,   nS(r.exp, 'neg'))}
-      ${td(10,  nS(r.cBOY))}
-      ${td(11,  nS(r.cashInt, 'pos'))}
-      ${td(12,  cS(r.cashSurplus))}
-      ${td(13,  nS(r.invBOY))}
-      ${td(14,  nS(r.iGrowth, 'pos'))}
-      ${td(15,  cS(r.invSurplus))}
-      ${td(16,  `<strong class="mono">${fm(nwEOY, '$0')}</strong>`)}
-      ${td(17,  nS(r.sBOY))}
-      ${td(18,  sSGDisplay)}
-      ${td(19,  sVolDisplay)}
-      ${td(20,  nS(r.sGrowth, 'pos'))}
-      ${td(21,  sDrawDisplay)}
-      ${td(22,  `<strong class="mono">${fm(r.sEOY, '$0')}</strong>`)}
+      ${td(9,   r.otherInc > 0 ? nS(r.otherInc) : dash())}
+      ${td(10,  nS(r.exp, 'neg'))}
+      ${td(11,  nS(r.cBOY))}
+      ${td(12,  nS(r.cashInt, 'pos'))}
+      ${td(13,  cS(r.cashSurplus))}
+      ${td(14,  `<strong class="mono">${fm(r.cEOY, '$0')}</strong>`)}
+      ${td(15,  nS(r.invBOY))}
+      ${td(16,  nS(r.iGrowth, 'pos'))}
+      ${td(17,  cS(r.invSurplus))}
+      ${td(18,  `<strong class="mono">${fm(r.invEOY, '$0')}</strong>`)}
+      ${td(19,  `<strong class="mono">${fm(nwEOY, '$0')}</strong>`)}
+      ${td(20,  nS(r.sBOY))}
+      ${td(21,  sSGDisplay)}
+      ${td(22,  sVolDisplay)}
+      ${td(23,  nS(r.sGrowth, 'pos'))}
+      ${td(24,  sDrawDisplay)}
+      ${td(25,  `<strong class="mono">${fm(r.sEOY, '$0')}</strong>`)}
     </tr>`;
 
     // Inset FIRE snapshot row — shows exact balances at the moment FIRE was achieved
@@ -1279,7 +1286,7 @@ function recalc() {
       const snapDateStr = snapDate.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
       const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       insetRow = `<tr style="background:rgba(61,158,64,0.16);">
-        <td colspan="21" style="padding:7px 16px 7px 20px;border-left:3px solid #3B6D11;text-align:left;">
+        <td colspan="26" style="padding:7px 16px 7px 20px;border-left:3px solid #3B6D11;text-align:left;">
           <span style="font-size:11px;font-weight:600;color:#5bbf5e;">🔥 FIRE achieved — ${snapDateStr} &nbsp;·&nbsp; Age ${r.age}y ${snap.month}m</span>
           <span style="font-size:11px;color:var(--color-text-secondary);margin-left:18px;">Non-super: <strong style="font-weight:500;font-family:var(--font-mono);">${fm(nonSuperSnap)}</strong></span>
           <span style="font-size:11px;color:var(--color-text-secondary);margin-left:14px;">Super${r.age < inp.pres ? ' (locked)' : ''}: <strong style="font-weight:500;font-family:var(--font-mono);">${fm(snap.s)}</strong></span>
