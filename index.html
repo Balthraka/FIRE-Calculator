@@ -49,7 +49,7 @@
   .input-prefix { position: absolute; left: 10px; font-size: 13px; color: var(--color-text-tertiary); pointer-events: none; z-index: 1; }
   .input-suffix { position: absolute; right: 10px; font-size: 13px; color: var(--color-text-tertiary); pointer-events: none; z-index: 1; }
 
-  input[type="text"], input[type="number"] {
+  input[type="text"], input[type="number"], input[type="date"], select {
     width: 100%;
     background: var(--color-bg-tertiary);
     border: 0.5px solid var(--color-border-secondary);
@@ -61,7 +61,8 @@
     transition: border-color 0.15s;
     font-family: inherit;
   }
-  input[type="text"]:focus, input[type="number"]:focus { border-color: var(--color-accent); }
+  input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus { border-color: var(--color-accent); }
+  .age-tag { font-size: 12px; color: var(--color-info); margin-top: 4px; font-family: var(--font-mono); }
   .has-prefix input[type="text"] { padding-left: 22px; }
   .has-suffix input[type="text"], .has-suffix input[type="number"] { padding-right: 30px; }
 
@@ -163,8 +164,9 @@
         <p class="section-title">Personal</p>
         <div class="field">
           <div>
-            <label>Current age</label>
-            <input type="number" id="i_age" value="35" min="18" max="80">
+            <label>Date of birth</label>
+            <input type="date" id="i_dob" value="1991-05-01">
+            <div class="age-tag" id="age_display">Age: 35 years, 0 months</div>
           </div>
           <div>
             <label>Projected age of death</label>
@@ -173,6 +175,14 @@
           <div>
             <label>Super preservation age</label>
             <input type="number" id="i_pres" value="60" min="55" max="65">
+          </div>
+          <div>
+            <label>Annual living expenses</label>
+            <div class="hint">Today's dollars — CPI-inflated each year</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">$</span>
+              <input type="text" id="i_exp" value="70,000" data-raw="70000">
+            </div>
           </div>
         </div>
       </div>
@@ -210,8 +220,16 @@
 
       <!-- INCOME & EXPENSES -->
       <div>
-        <p class="section-title">Income &amp; Expenses</p>
+        <p class="section-title">Income</p>
         <div class="field">
+          <div>
+            <label>Salary paid</label>
+            <select id="i_freq">
+              <option value="12" selected>Monthly</option>
+              <option value="26">Fortnightly</option>
+              <option value="52">Weekly</option>
+            </select>
+          </div>
           <div>
             <label>Gross salary excl. super</label>
             <div class="input-wrap has-prefix">
@@ -257,14 +275,6 @@
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
               <input type="text" id="i_othinc" value="0" data-raw="0">
-            </div>
-          </div>
-          <div>
-            <label>Annual living expenses</label>
-            <div class="hint">Today's dollars — CPI-inflated each year</div>
-            <div class="input-wrap has-prefix">
-              <span class="input-prefix">$</span>
-              <input type="text" id="i_exp" value="70,000" data-raw="70000">
             </div>
           </div>
         </div>
@@ -378,10 +388,33 @@ document.addEventListener('DOMContentLoaded', () => {
   ['i_cash','i_invest','i_super','i_salary','i_exp','i_vs','i_othemp','i_othinc'].forEach(id => {
     initCurrencyInput(document.getElementById(id));
   });
+  document.getElementById('i_dob').addEventListener('change', () => { updateAgeDisplay(); updateSGDisplay(); recalc(); });
+  document.getElementById('i_freq').addEventListener('change', () => recalc());
   document.querySelectorAll('input[type="number"]').forEach(el => el.addEventListener('input', () => { updateSGDisplay(); recalc(); }));
+  updateAgeDisplay();
   updateSGDisplay();
   recalc();
 });
+
+// ── AGE FROM DOB ──────────────────────────────────────────
+const TODAY = new Date();
+
+function getAgeInfo() {
+  const dob = new Date(document.getElementById('i_dob').value);
+  if (isNaN(dob)) return { years: 35, months: 0, decimal: 35 };
+  let years  = TODAY.getFullYear() - dob.getFullYear();
+  let months = TODAY.getMonth() - dob.getMonth();
+  if (TODAY.getDate() < dob.getDate()) months--;
+  if (months < 0) { years--; months += 12; }
+  years = Math.max(0, years);
+  return { years, months, decimal: years + months / 12 };
+}
+
+function updateAgeDisplay() {
+  const { years, months } = getAgeInfo();
+  document.getElementById('age_display').textContent =
+    `Age: ${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}`;
+}
 
 function updateSGDisplay() {
   const salary   = getRaw('i_salary');
@@ -546,7 +579,7 @@ function findBrokeAge(retireAge, c, inv, s, exp, p) {
 function simulate(inp) {
   const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir };
   let c = inp.c, inv = inp.inv, s = inp.s, e = inp.e;
-  let salary = inp.salary; // grows each year
+  let salary = inp.salary;
   const rows = [];
   let fireAge = null, retired = false;
 
@@ -554,6 +587,13 @@ function simulate(inp) {
   const totalInit = inp.c + inp.inv;
   const cRatio = totalInit > 0 ? inp.c / totalInit : 0;
   const iRatio = totalInit > 0 ? inp.inv / totalInit : 1;
+
+  // Per-period investment rate for annuity FV on surplus deposits
+  const freq = inp.freq;
+  const r_p = Math.pow(1 + inp.ir, 1 / freq) - 1;
+
+  // FV of end-of-period annuity: n equal payments of 1 at rate r
+  const annuityFV = (r, n) => r > 1e-12 ? ((Math.pow(1 + r, n) - 1) / r) : n;
 
   for (let age = inp.age; age <= inp.death; age++) {
     const yr = Y0 + (age - inp.age), post = age >= inp.pres;
@@ -564,41 +604,31 @@ function simulate(inp) {
       const totalEmpInc = salary + inp.otherEmpInc;
       const SG = totalEmpInc * getSG(yr);
       const maxCC = 30000;
-
-      // Full sacrifice reduces taxable income regardless of cap
-      // (excess is still pre-tax but gets ECC treatment from ATO separately)
       const volCC = inp.vs;
       const totalCC = SG + volCC;
-
-      // Total excess concessional contributions above $30K cap
-      // (from SG overage, sacrifice overage, or both combined)
       const excessCC = Math.max(0, totalCC - maxCC);
-
-      // Taxable income: all employment + other income, minus full sacrifice
       const taxIncBase = totalEmpInc + inp.otherInc - volCC;
-
-      // ECC tax: excess added to assessable income at marginal rate, less 15% offset
-      // This comes out of personal cash — the fund still receives all contributions
       const tBase = calcTax(taxIncBase);
       const eccExtraTax = excessCC > 0
-        ? Math.max(0, (calcTax(taxIncBase + excessCC) - tBase) - excessCC * 0.15)
-        : 0;
+        ? Math.max(0, (calcTax(taxIncBase + excessCC) - tBase) - excessCC * 0.15) : 0;
       const t = tBase + eccExtraTax;
       const netInc = taxIncBase - t;
-
-      // Super: fund receives totalCC and pays 15% contributions tax on all of it
-      const iGrowth = inv * p.ir, sGrowth = s * p.sr * 0.85;
+      const iGrowth = inv * p.ir;
+      const sGrowth = s * p.sr * 0.85;
       const sContrib = totalCC * 0.85;
-
       c += cashInt;
       const cashFlow = netInc - e;
       let cashSurplus = 0, invSurplus = 0;
       if (cashFlow >= 0) {
+        // Cash: simple proportional deposit (lower return, linear is fine)
         cashSurplus = cashFlow * cRatio;
-        invSurplus  = cashFlow * iRatio;
-        c   += cashSurplus;
-        inv  = inv + iGrowth + invSurplus;
+        c += cashSurplus;
+        // Investments: FV of freq equal periodic deposits (sub-annual compounding)
+        const surplusPerPeriod = (cashFlow * iRatio) / freq;
+        invSurplus = surplusPerPeriod * annuityFV(r_p, freq);
+        inv = inv + iGrowth + invSurplus;
       } else {
+        // Deficit: draw cash first then investments (annual model fine for drawdown)
         const def = -cashFlow;
         const cD = Math.min(c, def); c -= cD; cashSurplus = -cD;
         const iD = Math.min(inv + iGrowth, def - cD); inv = Math.max(0, inv + iGrowth - iD); invSurplus = -iD;
@@ -625,6 +655,47 @@ function simulate(inp) {
     rows.push(row);
   }
   return { rows, fireAge };
+}
+
+// ── PRECISE FIRE DATE (years + months) ───────────────────
+// Scans monthly within the FIRE year to find the exact month
+// when assets first satisfy canFIRE. Returns total months from now.
+function findPreciseFireDate(inp, rows, fireAge) {
+  if (fireAge === null) return null;
+  const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir };
+  const ageInfo = getAgeInfo();
+  const currentAgeDecimal = ageInfo.decimal;
+
+  // Assets at the start of the fireAge year (BOY of that row)
+  const fireRow = rows.find(r => r.age === fireAge);
+  if (!fireRow) return { totalMonths: Math.round((fireAge - currentAgeDecimal) * 12) };
+
+  // Monthly rates
+  const r_c = Math.pow(1 + inp.cir, 1/12) - 1;
+  const r_i = Math.pow(1 + inp.ir,  1/12) - 1;
+  const r_s_acc = Math.pow(1 + inp.sr * 0.85, 1/12) - 1;
+  const r_s_pen = Math.pow(1 + inp.sr,        1/12) - 1;
+  const r_inf   = Math.pow(1 + inp.inf,        1/12) - 1;
+
+  let C = fireRow.cBOY, I = fireRow.invBOY, S = fireRow.sBOY;
+  let E = fireRow.exp;
+
+  // Months from today to start of fireAge year
+  const monthsToFireYearStart = Math.round((fireAge - currentAgeDecimal) * 12);
+
+  // Scan month by month within the fire year
+  for (let m = 0; m <= 12; m++) {
+    const ageNow = fireAge + m / 12;
+    if (canFIRE(Math.floor(ageNow), C, I, S, E, p)) {
+      return { totalMonths: monthsToFireYearStart + m };
+    }
+    // Advance one month
+    C = C * (1 + r_c);
+    I = I * (1 + r_i);
+    S = S * (ageNow >= inp.pres ? (1 + r_s_pen) : (1 + r_s_acc));
+    E = E * (1 + r_inf);
+  }
+  return { totalMonths: monthsToFireYearStart };
 }
 
 // ── FORMAT HELPERS ────────────────────────────────────────
@@ -658,18 +729,21 @@ function fixStickyHeaders() {
 
 // ── RECALC ────────────────────────────────────────────────
 function recalc() {
+  const ageInfo = getAgeInfo();
   const inp = {
-    age: getRaw('i_age'), death: getRaw('i_death'), pres: getRaw('i_pres'),
+    age: ageInfo.years, death: getRaw('i_death'), pres: getRaw('i_pres'),
     c: getRaw('i_cash'), inv: getRaw('i_invest'), s: getRaw('i_super'),
     salary: getRaw('i_salary'), salg: getRaw('i_salg') / 100,
     e: getRaw('i_exp'), vs: getRaw('i_vs'),
     otherEmpInc: getRaw('i_othemp'), otherInc: getRaw('i_othinc'),
     cir: getRaw('i_cir') / 100, ir: getRaw('i_ir') / 100,
-    sr: getRaw('i_sr') / 100, inf: getRaw('i_inf') / 100
+    sr: getRaw('i_sr') / 100, inf: getRaw('i_inf') / 100,
+    freq: parseInt(document.getElementById('i_freq').value) || 12
   };
   if (inp.death <= inp.age) return;
   const p = { death: inp.death, pres: inp.pres, ir: inp.ir, sr: inp.sr, inf: inp.inf, cir: inp.cir };
   const { rows, fireAge } = simulate(inp);
+  const precise = findPreciseFireDate(inp, rows, fireAge);
   const lastRow = rows[rows.length - 1];
   const fr = rows.find(r => r.isFire);
   const impliedSWR = fr ? (fr.exp / fr.totalNW * 100) : null;
@@ -682,23 +756,42 @@ function recalc() {
       <p style="font-size:13px;color:var(--color-text-secondary);">Increase savings, reduce expenses, or adjust growth rate assumptions</p>
     </div>`;
   } else {
-    const yrs = fireAge - inp.age, fireYear = Y0 + yrs;
-    const preYrs = Math.max(0, inp.pres - fireAge);
+    const preYrs  = Math.max(0, inp.pres - fireAge);
     const postYrs = inp.death - Math.max(fireAge, inp.pres);
-    const retYrs = inp.death - fireAge;
-    const fireStr = yrs === 0 ? 'You can retire right now!' : yrs === 1 ? '1 year from now' : `${yrs} years from now`;
+    const retYrs  = inp.death - fireAge;
+
+    // Precise FIRE date in years + months from today
+    const totalMonths   = precise ? precise.totalMonths : (fireAge - inp.age) * 12;
+    const preciseYears  = Math.floor(totalMonths / 12);
+    const preciseMonths = totalMonths % 12;
+    const ageAtFireYrs  = ageInfo.years  + preciseYears;
+    const ageAtFireMths = ageInfo.months + preciseMonths;
+    const fireAgeYears  = ageAtFireYrs  + Math.floor(ageAtFireMths / 12);
+    const fireAgeMths   = ageAtFireMths % 12;
+
+    // Calendar date of FIRE
+    const dob = new Date(document.getElementById('i_dob').value);
+    const fireDate = new Date(dob.getFullYear() + fireAgeYears, dob.getMonth() + fireAgeMths, 1);
+    const fireCalendar = fireDate.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
+
+    const fromNowStr = totalMonths === 0 ? 'Right now!'
+      : preciseYears === 0 ? `${preciseMonths} month${preciseMonths !== 1 ? 's' : ''} from now`
+      : preciseMonths === 0 ? `${preciseYears} year${preciseYears !== 1 ? 's' : ''} from now`
+      : `${preciseYears} year${preciseYears !== 1 ? 's' : ''}, ${preciseMonths} month${preciseMonths !== 1 ? 's' : ''} from now`;
+
     const bridgeBlock = preYrs > 0 ? `
       <div class="stat-box">
         <div class="stat-val">${preYrs}y</div>
         <div class="stat-lbl">Pre-super bridge</div>
         <div class="stat-sub">ages ${fireAge}–${inp.pres}</div>
       </div>` : '';
+
     fe.innerHTML = `<div class="banner banner-success" style="margin-bottom:1rem;">
       <div class="banner-row">
         <div>
           <div class="banner-label banner-label-success">FIRE date</div>
-          <div class="fire-age">Age ${fireAge} &nbsp;·&nbsp; ${fireYear}</div>
-          <div class="fire-sub">${fireStr}</div>
+          <div class="fire-age">Age ${fireAgeYears}y ${fireAgeMths}m &nbsp;·&nbsp; ${fireCalendar}</div>
+          <div class="fire-sub">${fromNowStr}</div>
           ${fr ? `<div class="fire-detail">At FIRE: <strong>${fm(fr.nonSW)}</strong> non-super &nbsp;+&nbsp; <strong>${fm(fr.sBOY)}</strong> super locked until age ${inp.pres}</div>` : ''}
           ${impliedSWR !== null ? `<div class="fire-detail">Implied SWR: <strong>${impliedSWR.toFixed(2)}%</strong> &nbsp;·&nbsp; Estate at death: <strong>${fm(lastRow.totalNW)}</strong></div>` : ''}
         </div>
@@ -813,7 +906,7 @@ function recalc() {
 
   // Deflate a nominal future value back to today's dollars
   const toToday = (nominalVal, futureAge) => {
-    const yrs = futureAge - inp.age;
+    const yrs = futureAge - ageInfo.decimal;
     return nominalVal / Math.pow(1 + inp.inf, yrs);
   };
 
