@@ -217,28 +217,15 @@
         </div>
       </div>
 
-      <!-- INCOME & EXPENSES -->
+      <!-- INCOME -->
       <div>
         <p class="section-title">Income</p>
         <div class="field">
-
           <div>
             <label>Gross salary excl. super</label>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
               <input type="text" id="i_salary" value="210,000" data-raw="210000">
-            </div>
-            <div class="sg-output">
-              <span class="sg-label">Employer Super Guarantee (12%)</span>
-              <span class="sg-val" id="sg_display">$28,800 / yr</span>
-            </div>
-          </div>
-          <div>
-            <label>Salary growth (% p.a.)</label>
-            <div class="hint">Salary compounds at this rate each working year</div>
-            <div class="input-wrap has-suffix">
-              <input type="number" id="i_salg" value="1" min="0" max="20" step="0.5">
-              <span class="input-suffix">%</span>
             </div>
           </div>
           <div>
@@ -250,17 +237,38 @@
             </div>
           </div>
           <div>
-            <label>Salary sacrifice / extra super</label>
-            <div class="hint">Reduces taxable income · total concessional cap $30K (SG + sacrifice)</div>
+            <label>Salary Sacrifice / Concessional Contribution</label>
+            <div class="hint">Reduces taxable income · total concessional cap $30K (SG + sacrifice combined)</div>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
               <input type="text" id="i_vs" value="0" data-raw="0">
             </div>
-            <div class="sg-output" id="cc_display_wrap">
-              <span class="sg-label" id="cc_label">Concessional cap room</span>
-              <span class="sg-val" id="cc_display">$6,000</span>
+          </div>
+
+          <!-- COMBINED SUPER / TAX PILL -->
+          <div id="super_pill" style="background:var(--color-bg-tertiary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-sm,6px);padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;">
+              <span style="font-size:11px;color:var(--color-text-secondary);" id="sg_label_main">Employer SG (12%)</span>
+              <span style="font-size:13px;font-weight:500;font-family:var(--font-mono);color:var(--color-info);" id="sg_display">$0</span>
+            </div>
+            <div id="sg_ecc_row" style="display:none;justify-content:space-between;align-items:baseline;">
+              <span style="font-size:11px;color:var(--color-text-secondary);" id="sg_ecc_label">ECC tax</span>
+              <span style="font-size:12px;font-family:var(--font-mono);color:var(--color-danger);" id="sg_ecc_val"></span>
+            </div>
+            <div id="sg_d293_row" style="display:none;justify-content:space-between;align-items:baseline;">
+              <span style="font-size:11px;color:var(--color-text-secondary);">Div 293 tax</span>
+              <span style="font-size:12px;font-family:var(--font-mono);color:var(--color-warning);" id="sg_d293_val"></span>
+            </div>
+            <div id="sg_total_row" style="display:none;border-top:0.5px solid var(--color-border);padding-top:5px;justify-content:space-between;align-items:baseline;">
+              <span style="font-size:11px;font-weight:500;color:var(--color-text-secondary);">Total extra tax</span>
+              <span style="font-size:12px;font-weight:500;font-family:var(--font-mono);color:var(--color-danger);" id="sg_total_val"></span>
+            </div>
+            <div style="border-top:0.5px solid var(--color-border);padding-top:5px;display:flex;justify-content:space-between;align-items:baseline;">
+              <span style="font-size:11px;color:var(--color-text-secondary);" id="cc_label">Cap room</span>
+              <span style="font-size:12px;font-family:var(--font-mono);" id="cc_display" style="color:var(--color-info);">$0</span>
             </div>
           </div>
+
           <div>
             <label>Other Income</label>
             <div class="hint">e.g. rental income · taxed as income · no SG · goes to cash</div>
@@ -274,6 +282,14 @@
       <div>
         <p class="section-title">Growth Rates</p>
         <div class="field">
+          <div>
+            <label>Salary growth (% p.a.)</label>
+            <div class="hint">Applies to gross salary only — not to Other Employment Income</div>
+            <div class="input-wrap has-suffix">
+              <input type="number" id="i_salg" value="1" min="0" max="20" step="0.5">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
           <div>
             <label>Cash Return (% p.a.)</label>
             <div class="input-wrap has-suffix">
@@ -309,7 +325,6 @@
     </div>
     <div class="toolbar">
       <button onclick="recalc()">Recalculate</button>
-      <span>Auto-updates on input change · SG 12% from FY25-26 · FY24-25 tax brackets + LITO · Drawdown: Cash → Invest → Super</span>
     </div>
   </div>
 
@@ -351,6 +366,7 @@
           <li style="font-size:12px;color:var(--color-text-secondary);">Medicare levy 2% on income above ~$26,000</li>
           <li style="font-size:12px;color:var(--color-text-secondary);">Salary sacrifice reduces taxable income before tax is calculated</li>
           <li style="font-size:12px;color:var(--color-text-secondary);">Excess concessional contributions taxed at marginal rate less 15% offset</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">Division 293 tax: extra 15% on concessional contributions where income + contributions exceeds $250,000 — paid as personal ATO assessment, fund balance unaffected</li>
         </ul>
       </div>
 
@@ -371,7 +387,7 @@
         <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
           <li style="font-size:12px;color:var(--color-text-secondary);">Other Employment Income attracts SG and is taxed as salary</li>
           <li style="font-size:12px;color:var(--color-text-secondary);">Other Income (e.g. rental) taxed at marginal rate - no SG</li>
-          <li style="font-size:12px;color:var(--color-text-secondary);">Salary grows at stated annual rate each working year</li>
+          <li style="font-size:12px;color:var(--color-text-secondary);">Salary growth applies to gross salary only — Other Employment Income (e.g. bonus) is held constant each year</li>
           <li style="font-size:12px;color:var(--color-text-secondary);">Tax assessed annually; income distributed across pay periods</li>
           <li style="font-size:12px;color:var(--color-text-secondary);">Salary assumed paid monthly — surplus invested at end of each month</li>
         </ul>
@@ -483,60 +499,103 @@ function updateAgeDisplay() {
     `Age: ${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}`;
 }
 
+function fm_k(n) {
+  // Compact formatter for pill display
+  if (Math.abs(n) >= 1000) return '$' + (n/1000).toFixed(1).replace(/\.0$/,'') + 'K';
+  return '$' + Math.round(n).toLocaleString('en-AU');
+}
+
 function updateSGDisplay() {
-  const salary   = getRaw('i_salary');
-  const otherEmp = getRaw('i_othemp');
-  const totalEmp = salary + otherEmp;
-  const sg       = totalEmp * 0.12;
-  const room     = Math.max(0, 30000 - sg);
-  const vs       = getRaw('i_vs');
-  const effective = Math.min(vs, room);
-  const sgExcess  = Math.max(0, sg - 30000);
+  const salary     = getRaw('i_salary');
+  const otherEmp   = getRaw('i_othemp');
+  const otherInc   = getRaw('i_othinc');
+  const vs         = getRaw('i_vs');
+  const totalEmp   = salary + otherEmp;
+  const sg         = totalEmp * 0.12;
+  const room       = Math.max(0, 30000 - sg);
+  const sgExcess   = Math.max(0, sg - 30000);
+  const totalCC    = sg + vs;
+  const excessCC   = Math.max(0, totalCC - 30000);
+  const taxIncBase = totalEmp + otherInc - vs;
+  const div293Inc  = taxIncBase + totalCC;
+  const hasECC     = excessCC > 0;
+  const hasDiv293  = div293Inc > 250000;
 
-  const sgLabel   = document.getElementById('sg_display').previousElementSibling;
-  const sgDisplay = document.getElementById('sg_display');
-  const sgWrap    = sgDisplay.closest('.sg-output');
+  let eccAmt = 0;
+  if (hasECC) {
+    const tBase = calcTax(taxIncBase);
+    eccAmt = Math.max(0, (calcTax(taxIncBase + excessCC) - tBase) - excessCC * 0.15);
+  }
+  const div293Amt = hasDiv293 ? Math.min(totalCC, div293Inc - 250000) * 0.15 : 0;
 
-  if (sgExcess > 0) {
-    // SG alone exceeds the cap — warn about ECC tax
-    sgDisplay.textContent = '$' + Math.round(sg).toLocaleString('en-AU') + ' / yr';
-    sgLabel.textContent   = 'Employer SG (12%) — ECC tax applies';
-    sgWrap.style.background  = 'rgba(224,85,85,0.08)';
-    sgWrap.style.borderColor = 'rgba(224,85,85,0.25)';
-    sgDisplay.style.color    = 'var(--color-danger)';
+  // SG row
+  const sgMainLabel = document.getElementById('sg_label_main');
+  const sgDisplay   = document.getElementById('sg_display');
+  sgDisplay.textContent = fm_k(sg) + ' / yr';
+  sgMainLabel.textContent = 'Employer SG (12%)';
+  sgDisplay.style.color = hasECC || hasDiv293 ? 'var(--color-text-secondary)' : 'var(--color-info)';
+
+  // ECC row
+  const eccRow = document.getElementById('sg_ecc_row');
+  const eccVal = document.getElementById('sg_ecc_val');
+  if (hasECC) {
+    eccRow.style.display = 'flex';
+    eccVal.textContent   = '+' + fm_k(eccAmt) + ' / yr';
+    document.getElementById('sg_ecc_label').textContent = `ECC tax (${fm_k(excessCC)} over cap)`;
   } else {
-    sgDisplay.textContent = '$' + Math.round(sg).toLocaleString('en-AU') + ' / yr';
-    sgLabel.textContent   = 'Employer Super Guarantee (12%)';
-    sgWrap.style.background  = '';
-    sgWrap.style.borderColor = '';
-    sgDisplay.style.color    = 'var(--color-info)';
+    eccRow.style.display = 'none';
   }
 
+  // Div 293 row
+  const d293Row = document.getElementById('sg_d293_row');
+  const d293Val = document.getElementById('sg_d293_val');
+  if (hasDiv293) {
+    d293Row.style.display = 'flex';
+    d293Val.textContent   = '+' + fm_k(div293Amt) + ' / yr';
+  } else {
+    d293Row.style.display = 'none';
+  }
+
+  // Total extra tax row
+  const totalRow = document.getElementById('sg_total_row');
+  const totalVal = document.getElementById('sg_total_val');
+  const totalExtra = eccAmt + div293Amt;
+  if (hasECC || hasDiv293) {
+    totalRow.style.display = 'flex';
+    totalVal.textContent   = fm_k(totalExtra) + ' / yr extra';
+  } else {
+    totalRow.style.display = 'none';
+  }
+
+  // Pill border colour: red if ECC, amber if only Div 293, default otherwise
+  const pill = document.getElementById('super_pill');
+  if (hasECC) {
+    pill.style.borderColor = 'rgba(224,85,85,0.35)';
+    pill.style.background  = 'rgba(224,85,85,0.05)';
+  } else if (hasDiv293) {
+    pill.style.borderColor = 'rgba(201,138,26,0.35)';
+    pill.style.background  = 'rgba(201,138,26,0.05)';
+  } else {
+    pill.style.borderColor = '';
+    pill.style.background  = '';
+  }
+
+  // Cap room row
   const ccLabel   = document.getElementById('cc_label');
   const ccDisplay = document.getElementById('cc_display');
-  const ccWrap    = document.getElementById('cc_display_wrap');
-
   if (sgExcess > 0) {
-    // SG already over cap — any sacrifice also gets ECC treatment
-    ccLabel.textContent      = `SG exceeds $30K cap by $${Math.round(sgExcess).toLocaleString('en-AU')} — sacrifice also gets ECC tax`;
-    ccDisplay.textContent    = 'ECC on all';
-    ccWrap.style.background  = 'rgba(224,85,85,0.08)';
-    ccWrap.style.borderColor = 'rgba(224,85,85,0.25)';
-    ccDisplay.style.color    = 'var(--color-danger)';
+    ccLabel.textContent   = `SG already over cap — all sacrifice gets ECC tax`;
+    ccDisplay.textContent = 'No room';
+    ccDisplay.style.color = 'var(--color-danger)';
   } else if (vs > 0 && vs > room) {
-    // Sacrifice exceeds cap room — excess gets ECC treatment but still goes to super
-    const excessSacrifice = vs - room;
-    ccLabel.textContent      = `$${Math.round(excessSacrifice).toLocaleString('en-AU')} over cap — ECC tax applies on excess`;
-    ccDisplay.textContent    = `$${Math.round(room).toLocaleString('en-AU')} cap room`;
-    ccWrap.style.background  = 'rgba(201,138,26,0.08)';
-    ccWrap.style.borderColor = 'rgba(201,138,26,0.25)';
-    ccDisplay.style.color    = 'var(--color-warning)';
+    const excessSac = vs - room;
+    ccLabel.textContent   = `$${Math.round(room).toLocaleString('en-AU')} cap room · ${fm_k(excessSac)} over → ECC`;
+    ccDisplay.textContent = fm_k(vs) + ' sacrifice';
+    ccDisplay.style.color = 'var(--color-warning)';
   } else {
-    ccLabel.textContent      = `Cap room (after $${Math.round(sg).toLocaleString('en-AU')} SG)`;
-    ccDisplay.textContent    = '$' + Math.round(room).toLocaleString('en-AU');
-    ccWrap.style.background  = '';
-    ccWrap.style.borderColor = '';
-    ccDisplay.style.color    = 'var(--color-info)';
+    ccLabel.textContent   = `Cap room after SG`;
+    ccDisplay.textContent = fm_k(room);
+    ccDisplay.style.color = 'var(--color-info)';
   }
 }
 
@@ -686,7 +745,7 @@ function simulate(inp) {
 
     // Annual income calcs — tax is assessed annually
     let totalEmpInc = 0, SG_annual = 0, t_annual = 0, netInc_annual = 0;
-    let sContrib_monthly = 0, SG_m = 0;
+    let sContrib_monthly = 0, sgContrib_monthly = 0, vsContrib_monthly = 0, SG_m = 0;
     if (!retired) {
       totalEmpInc  = salary + inp.otherEmpInc;
       SG_annual    = totalEmpInc * getSG(yr);
@@ -695,19 +754,33 @@ function simulate(inp) {
       const excessCC = Math.max(0, totalCC - 30000);
       const taxIncBase = totalEmpInc + inp.otherInc - volCC;
       const tBase  = calcTax(taxIncBase);
+
+      // ECC tax: excess concessional contributions above $30K cap
+      // Excess grossed up to income, taxed at marginal rate less 15% fund tax already paid
       const eccExtraTax = excessCC > 0
         ? Math.max(0, (calcTax(taxIncBase + excessCC) - tBase) - excessCC * 0.15) : 0;
-      t_annual     = tBase + eccExtraTax;
+
+      // Division 293 tax: extra 15% on concessional contributions for high earners
+      // Applies when (taxable income + total concessional contributions) > $250,000
+      // Tax is on the portion of contributions that pushed combined income over the threshold
+      // Paid as personal ATO assessment — fund still receives same contributions net of 15%
+      const div293Income = taxIncBase + totalCC;
+      const div293Tax = div293Income > 250000
+        ? Math.min(totalCC, div293Income - 250000) * 0.15 : 0;
+
+      t_annual     = tBase + eccExtraTax + div293Tax;
       netInc_annual = taxIncBase - t_annual;
-      sContrib_monthly = (SG_annual + volCC) * 0.85 / 12;
+      sContrib_monthly = totalCC * 0.85 / 12;  // fund contributions unchanged — Div 293 is personal
       SG_m         = SG_annual / 12;
+      sgContrib_monthly = SG_annual * 0.85 / 12;
+      vsContrib_monthly = volCC * 0.85 / 12;
     }
 
     const ann = {
-      salary: 0, t: 0, netInc: 0, SG: 0,
+      salary: 0, sacrifice: 0, t: 0, netInc: 0, SG: 0,
       cashInt: 0, cashSurplus: 0,
       iGrowth: 0, invSurplus: 0,
-      sWork: 0, sDraw: 0, sGrowth: 0, exp: 0
+      sSG: 0, sVol: 0, sWork: 0, sDraw: 0, sGrowth: 0, exp: 0
     };
     let fireSnapshot = null;
 
@@ -743,6 +816,7 @@ function simulate(inp) {
           const iD = Math.min(inv, def - cD); inv = Math.max(0, inv - iD); invSurplus_m = -iD;
         }
         ann.salary    += totalEmpInc / 12;
+        ann.sacrifice += inp.vs / 12;
         ann.t         += t_annual / 12;
         ann.netInc    += netInc_annual / 12;
         ann.SG        += SG_m;
@@ -750,6 +824,8 @@ function simulate(inp) {
         ann.cashSurplus += cashSurplus_m;
         ann.iGrowth   += iGrowth_m;
         ann.invSurplus += invSurplus_m;
+        ann.sSG       += sgContrib_monthly;
+        ann.sVol      += vsContrib_monthly;
         ann.sWork     += sContrib_monthly;
         ann.sGrowth   += sGrowth_m;
         ann.exp       += exp_m;
@@ -1093,12 +1169,12 @@ function recalc() {
   const GRP = [
     { label: '',                               n: 3, align: 'left'   },
     { label: 'Net Worth (ex. Super) SoY',      n: 1, align: 'center' },
-    { label: 'Income',                         n: 4, align: 'center' },
+    { label: 'Income',                         n: 5, align: 'center' },
     { label: 'Expenses',                       n: 1, align: 'center' },
     { label: 'Cash',                           n: 3, align: 'center' },
     { label: 'Investments',                    n: 3, align: 'center' },
     { label: 'Net Worth (ex. Super) EoY',      n: 1, align: 'center' },
-    { label: 'Super',                          n: 5, align: 'center' },
+    { label: 'Super',                          n: 6, align: 'center' },
   ];
 
   const grpStyle = 'padding:4px 10px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);background:var(--color-bg-tertiary);position:sticky;top:0;z-index:3;white-space:nowrap;';
@@ -1114,6 +1190,7 @@ function recalc() {
     { h: 'Phase',          left: true  },
     { h: 'Net Worth',      left: false },
     { h: 'Salary',         left: false },
+    { h: 'Sacrifice',      left: false },
     { h: 'Tax etc',        left: false },
     { h: 'Net Income',     left: false },
     { h: 'Employer SG',    left: false },
@@ -1126,14 +1203,15 @@ function recalc() {
     { h: 'Surplus / Draw', left: false },
     { h: 'Net Worth',      left: false },
     { h: 'Super (Start)',  left: false },
-    { h: 'Contrib (net)',  left: false },
+    { h: 'Employer SG',   left: false },
+    { h: 'Sacrifice',      left: false },
     { h: 'Growth',         left: false },
     { h: 'Draw',           left: false },
     { h: 'Super (End)',    left: false },
   ];
 
   // Right-border dividers after these column indices
-  const dividers = new Set([2, 3, 7, 8, 11, 14, 15]);
+  const dividers = new Set([2, 3, 8, 9, 12, 15, 16]);
 
   const thStyle = 'padding:6px 10px;font-weight:500;font-size:11px;color:var(--color-text-secondary);position:sticky;top:0;z-index:2;background:var(--color-bg-secondary);white-space:nowrap;';
   const colRow = COLS.map((c, i) =>
@@ -1161,8 +1239,9 @@ function recalc() {
 
     const nwBOY = r.cBOY + r.invBOY;
     const nwEOY = r.cEOY + r.invEOY;
-    const sContribDisplay = r.sWork > 0 ? nS(r.sWork, 'pos') : dash();
-    const sDrawDisplay    = r.sDraw < 0 ? nS(-r.sDraw, 'neg') : dash();
+    const sSGDisplay   = r.sSG  > 0 ? nS(r.sSG,  'pos') : dash();
+    const sVolDisplay  = r.sVol > 0 ? nS(r.sVol, 'pos') : dash();
+    const sDrawDisplay = r.sDraw < 0 ? nS(-r.sDraw, 'neg') : dash();
 
     const annualRow = `<tr class="${r.isFire ? 'row-fire' : ''}">
       <td class="${lb} ${pT} mono" style="padding:5px 10px;text-align:right;font-weight:500;${pT ? 'border-top:2px solid #185FA5;' : ''}${div(0)}">${r.age}</td>
@@ -1170,22 +1249,24 @@ function recalc() {
       ${tdL(2,  phCell)}
       ${td(3,   `<strong class="mono">${fm(nwBOY, '$0')}</strong>`)}
       ${td(4,   r.retired && !r.isFire ? dash() : nS(r.salary))}
-      ${td(5,   r.retired && !r.isFire ? dash() : nS(r.t, 'neg'))}
-      ${td(6,   r.retired && !r.isFire ? dash() : nS(r.netInc))}
-      ${td(7,   r.retired && !r.isFire ? dash() : nS(r.SG, 'info-c'))}
-      ${td(8,   nS(r.exp, 'neg'))}
-      ${td(9,   nS(r.cBOY))}
-      ${td(10,  nS(r.cashInt, 'pos'))}
-      ${td(11,  cS(r.cashSurplus))}
-      ${td(12,  nS(r.invBOY))}
-      ${td(13,  nS(r.iGrowth, 'pos'))}
-      ${td(14,  cS(r.invSurplus))}
-      ${td(15,  `<strong class="mono">${fm(nwEOY, '$0')}</strong>`)}
-      ${td(16,  nS(r.sBOY))}
-      ${td(17,  sContribDisplay)}
-      ${td(18,  nS(r.sGrowth, 'pos'))}
-      ${td(19,  sDrawDisplay)}
-      ${td(20,  `<strong class="mono">${fm(r.sEOY, '$0')}</strong>`)}
+      ${td(5,   r.sacrifice > 0 ? nS(r.sacrifice, 'neg') : dash())}
+      ${td(6,   r.retired && !r.isFire ? dash() : nS(r.t, 'neg'))}
+      ${td(7,   r.retired && !r.isFire ? dash() : nS(r.netInc))}
+      ${td(8,   r.retired && !r.isFire ? dash() : nS(r.SG, 'info-c'))}
+      ${td(9,   nS(r.exp, 'neg'))}
+      ${td(10,  nS(r.cBOY))}
+      ${td(11,  nS(r.cashInt, 'pos'))}
+      ${td(12,  cS(r.cashSurplus))}
+      ${td(13,  nS(r.invBOY))}
+      ${td(14,  nS(r.iGrowth, 'pos'))}
+      ${td(15,  cS(r.invSurplus))}
+      ${td(16,  `<strong class="mono">${fm(nwEOY, '$0')}</strong>`)}
+      ${td(17,  nS(r.sBOY))}
+      ${td(18,  sSGDisplay)}
+      ${td(19,  sVolDisplay)}
+      ${td(20,  nS(r.sGrowth, 'pos'))}
+      ${td(21,  sDrawDisplay)}
+      ${td(22,  `<strong class="mono">${fm(r.sEOY, '$0')}</strong>`)}
     </tr>`;
 
     // Inset FIRE snapshot row — shows exact balances at the moment FIRE was achieved
