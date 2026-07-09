@@ -257,12 +257,12 @@
 
           <div>
             <label>Other Income</label>
-            <div class="hint">e.g. rental income · taxed as income · no SG · goes to cash</div>
+            <div class="hint">Income from sources outside your tracked assets — e.g. rent, defined benefit pension, side business. Do not include bank interest (already in Cash Return) or share dividends (fold those into your Investment Return % instead)</div>
             <div class="input-wrap has-prefix">
               <span class="input-prefix">$</span>
               <input type="text" id="i_othinc" value="0" data-raw="0">
             </div>
-            <label id="i_othinc_cont_label" style="margin-top:6px;display:none;">Income continues after retirement?</label>
+            <label id="i_othinc_cont_label" style="margin-top:6px;display:none;">Does this Other Income continue after retirement?</label>
             <select id="i_othinc_cont" style="display:none;">
               <option value="yes">Continues after retirement</option>
               <option value="no" selected>Stops at retirement</option>
@@ -283,6 +283,7 @@
           </div>
           <div>
             <label>Cash Return (% p.a.)</label>
+            <div class="hint">Interest on cash savings (HISA, term deposits). Do not include dividends here — fold those into Investment Return instead</div>
             <div class="input-wrap has-suffix">
               <input type="number" id="i_cir" value="5" min="0" max="15" step="0.25">
               <span class="input-suffix">%</span>
@@ -290,6 +291,7 @@
           </div>
           <div>
             <label>Investment Return (% p.a.)</label>
+            <div class="hint">Total portfolio return including dividends and capital growth — do not enter dividends separately in Other Income</div>
             <div class="input-wrap has-suffix">
               <input type="number" id="i_ir" value="7" min="0" max="20" step="0.5">
               <span class="input-suffix">%</span>
@@ -363,8 +365,8 @@
           <p style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin:0 0 8px;">Income</p>
           <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;">
             <li style="font-size:12px;color:var(--color-text-secondary);">Other Employment Income (e.g. bonus) attracts SG, is taxed as salary, and is held constant each year — salary growth rate does not apply to it</li>
-            <li style="font-size:12px;color:var(--color-text-secondary);">Other Income (e.g. rental): taxed at marginal rate stacked on salary during working years, and at its own standalone marginal rate in retirement</li>
-            <li style="font-size:12px;color:var(--color-text-secondary);">Other Income in retirement: toggle selects whether it continues or stops — if it continues, it is held constant in nominal terms and does not inflate with CPI</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Other Income (e.g. rent, defined benefit pension, side business): income from sources outside your tracked assets — taxed at marginal rate stacked on salary during working years, and at its own standalone marginal rate in retirement. Do not include bank interest or share dividends here.</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Other Income in retirement: the "Does this Other Income continue?" toggle controls whether it persists after retirement — if it continues, it is held constant in nominal terms and does not inflate with CPI</li>
             <li style="font-size:12px;color:var(--color-text-secondary);">Tax assessed annually; salary assumed paid monthly with surplus invested at end of each month</li>
             <li style="font-size:12px;color:var(--color-text-secondary);">Salary growth applied at end of each working year — base salary is earned at the prior year's rate throughout the year</li>
           </ul>
@@ -376,6 +378,9 @@
             <li style="font-size:12px;color:var(--color-text-secondary);">Inflation applied monthly — expenses grow continuously throughout the year</li>
             <li style="font-size:12px;color:var(--color-text-secondary);">All ledger values in nominal (future) dollars — "Today's $" figures are deflated using your stated inflation rate</li>
             <li style="font-size:12px;color:var(--color-text-secondary);">Income surplus split between cash and investments at the initial Cash / Investment balance ratio, fixed for the entire projection</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Cash Return should include all interest on cash savings (HISA, term deposits) — do not also enter this in Other Income</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Investment Return should reflect total portfolio return including dividends and capital growth — dividends should not be entered separately in Other Income</li>
+            <li style="font-size:12px;color:var(--color-text-secondary);">Other Income is for income from sources outside your tracked assets (e.g. rent, defined benefit pension, side business) — not for returns already captured in Cash or Investment Return</li>
           </ul>
         </div>
       </div>
